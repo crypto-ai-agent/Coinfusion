@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ProgressHeader } from "./education/ProgressHeader";
 import { TopicCard } from "./education/TopicCard";
 import { Button } from "./ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./ui/card";
 
 type CardType = "guide_collection" | "quiz_section" | "progress_tracker" | "featured_content" | "ai_highlight" | "news_collection";
 
@@ -20,6 +21,41 @@ type ContentCard = {
   is_active: boolean;
   style_variant: string;
 };
+
+const defaultTopics = [
+  {
+    title: "Crypto Basics",
+    description: "Learn the fundamentals of cryptocurrency and blockchain technology",
+    icon: BookOpen,
+    link: "/education/crypto-basics",
+    difficulty: "Beginner",
+    points: 100
+  },
+  {
+    title: "Security",
+    description: "Understand how to keep your crypto investments safe",
+    icon: Shield,
+    link: "/education/security",
+    difficulty: "Intermediate",
+    points: 150
+  },
+  {
+    title: "Investment",
+    description: "Master the strategies for successful crypto investing",
+    icon: TrendingUp,
+    link: "/education/investment",
+    difficulty: "Advanced",
+    points: 200
+  },
+  {
+    title: "Advanced Topics",
+    description: "Dive deep into DeFi, NFTs, and emerging trends",
+    icon: Lightbulb,
+    link: "/education/advanced",
+    difficulty: "Expert",
+    points: 250
+  },
+];
 
 export const Education = () => {
   const navigate = useNavigate();
@@ -39,7 +75,7 @@ export const Education = () => {
         .from('page_layouts')
         .select('*')
         .eq('page_name', 'education')
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -103,21 +139,51 @@ export const Education = () => {
     checkAuth();
   }, []);
 
+  const renderGuideCollection = (card: ContentCard) => (
+    <div key={card.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {defaultTopics.map((topic) => (
+        <TopicCard
+          key={topic.title}
+          {...topic}
+          isCompleted={userProgress?.completed_content.includes(topic.title) || false}
+        />
+      ))}
+    </div>
+  );
+
+  const renderQuizSection = (card: ContentCard) => (
+    <Card key={card.id} className="bg-primary/5">
+      <CardHeader>
+        <CardTitle>{card.title}</CardTitle>
+        <CardDescription>{card.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button onClick={() => navigate("/quiz")}>Start Quiz</Button>
+      </CardContent>
+    </Card>
+  );
+
+  const renderFeaturedContent = (card: ContentCard) => (
+    <Card key={card.id}>
+      <CardHeader>
+        <CardTitle>{card.title}</CardTitle>
+        <CardDescription>{card.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {/* Featured content will be implemented here */}
+        <div className="text-muted-foreground">Coming soon...</div>
+      </CardContent>
+    </Card>
+  );
+
   const renderCard = (card: ContentCard) => {
     switch (card.card_type) {
       case 'guide_collection':
-        return (
-          <div key={card.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Render guide collection */}
-          </div>
-        );
+        return renderGuideCollection(card);
       case 'quiz_section':
-        return (
-          <div key={card.id} className="bg-primary/5 p-6 rounded-lg">
-            {/* Render quiz section */}
-          </div>
-        );
-      // Add more card type renderers as needed
+        return renderQuizSection(card);
+      case 'featured_content':
+        return renderFeaturedContent(card);
       default:
         return null;
     }
@@ -149,16 +215,20 @@ export const Education = () => {
               totalPoints={userProgress.total_points}
               currentStreak={userProgress.current_streak}
               completedCount={userProgress.completed_content.length}
-              totalCount={topics.length}
+              totalCount={defaultTopics.length}
             />
           )}
         </div>
 
         <div className="space-y-12">
-          {layout?.layout_order.map((cardId) => {
-            const card = contentCards?.find((c) => c.id === cardId);
-            return card ? renderCard(card) : null;
-          })}
+          {layout?.layout_order && Array.isArray(layout.layout_order) ? (
+            layout.layout_order.map((cardId) => {
+              const card = contentCards?.find((c) => c.id === cardId);
+              return card ? renderCard(card) : null;
+            })
+          ) : (
+            contentCards?.map(card => renderCard(card))
+          )}
         </div>
       </div>
     </section>
