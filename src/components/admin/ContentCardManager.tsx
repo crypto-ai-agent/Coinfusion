@@ -13,11 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+type CardType = "guide_collection" | "quiz_section" | "progress_tracker" | "featured_content" | "ai_highlight" | "news_collection";
+
 type ContentCard = {
   id: string;
   title: string;
   description: string | null;
-  card_type: string;
+  card_type: CardType;
   content_ids: string[];
   display_order: number;
   is_active: boolean;
@@ -38,7 +40,7 @@ export const ContentCardManager = () => {
         .select('*')
         .order('display_order');
       if (error) throw error;
-      return data;
+      return data as ContentCard[];
     },
   });
 
@@ -70,7 +72,15 @@ export const ContentCardManager = () => {
     mutationFn: async (card: ContentCard) => {
       const { error } = await supabase
         .from('content_cards')
-        .update(card)
+        .update({
+          title: card.title,
+          description: card.description,
+          card_type: card.card_type,
+          content_ids: card.content_ids,
+          display_order: card.display_order,
+          is_active: card.is_active,
+          style_variant: card.style_variant,
+        })
         .eq('id', card.id);
       if (error) throw error;
     },
@@ -122,7 +132,7 @@ export const ContentCardManager = () => {
     const cardData = {
       title: formData.get('title') as string,
       description: formData.get('description') as string,
-      card_type: formData.get('card_type') as string,
+      card_type: formData.get('card_type') as CardType,
       content_ids: [],
       display_order: parseInt(formData.get('display_order') as string),
       is_active: formData.get('is_active') === 'true',

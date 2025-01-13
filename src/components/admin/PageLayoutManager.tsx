@@ -27,7 +27,7 @@ export const PageLayoutManager = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as PageLayout;
     },
   });
 
@@ -55,7 +55,7 @@ export const PageLayoutManager = () => {
   });
 
   const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
+    if (!result.destination || !layouts) return;
 
     const items = Array.from(layouts.layout_order);
     const [reorderedItem] = items.splice(result.source.index, 1);
