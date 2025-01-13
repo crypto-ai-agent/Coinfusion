@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EducationalContentManager } from "./EducationalContentManager";
 import { NewsManager } from "./NewsManager";
 import { UserProfilesManager } from "@/components/admin/UserProfilesManager";
+import { QuizManager } from "./QuizManager";
 
 const AdminDashboard = () => {
   return (
@@ -16,11 +17,15 @@ const AdminDashboard = () => {
         <Tabs defaultValue="education" className="w-full">
           <TabsList className="mb-8">
             <TabsTrigger value="education">Educational Content</TabsTrigger>
+            <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
             <TabsTrigger value="news">News Articles</TabsTrigger>
             <TabsTrigger value="users">User Profiles</TabsTrigger>
           </TabsList>
           <TabsContent value="education">
             <EducationalContentManager />
+          </TabsContent>
+          <TabsContent value="quizzes">
+            <QuizManager />
           </TabsContent>
           <TabsContent value="news">
             <NewsManager />

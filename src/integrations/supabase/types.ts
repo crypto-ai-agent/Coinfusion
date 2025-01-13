@@ -176,11 +176,37 @@ export type Database = {
           },
         ]
       }
+      quiz_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       quiz_questions: {
         Row: {
           correct_answer: string
           created_at: string | null
           explanation: string | null
+          feedback_correct: string | null
+          feedback_incorrect: string | null
           id: string
           options: Json
           question: string
@@ -190,6 +216,8 @@ export type Database = {
           correct_answer: string
           created_at?: string | null
           explanation?: string | null
+          feedback_correct?: string | null
+          feedback_incorrect?: string | null
           id?: string
           options: Json
           question: string
@@ -199,6 +227,8 @@ export type Database = {
           correct_answer?: string
           created_at?: string | null
           explanation?: string | null
+          feedback_correct?: string | null
+          feedback_incorrect?: string | null
           id?: string
           options?: Json
           question?: string
@@ -216,33 +246,55 @@ export type Database = {
       }
       quizzes: {
         Row: {
+          category_id: string | null
           content_id: string | null
           created_at: string | null
           description: string | null
+          difficulty_level: string | null
+          estimated_duration: unknown | null
           id: string
           points: number | null
+          prerequisites: string[] | null
+          tags: string[] | null
           title: string
           updated_at: string | null
         }
         Insert: {
+          category_id?: string | null
           content_id?: string | null
           created_at?: string | null
           description?: string | null
+          difficulty_level?: string | null
+          estimated_duration?: unknown | null
           id?: string
           points?: number | null
+          prerequisites?: string[] | null
+          tags?: string[] | null
           title: string
           updated_at?: string | null
         }
         Update: {
+          category_id?: string | null
           content_id?: string | null
           created_at?: string | null
           description?: string | null
+          difficulty_level?: string | null
+          estimated_duration?: unknown | null
           id?: string
           points?: number | null
+          prerequisites?: string[] | null
+          tags?: string[] | null
           title?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "quizzes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quizzes_content_id_fkey"
             columns: ["content_id"]

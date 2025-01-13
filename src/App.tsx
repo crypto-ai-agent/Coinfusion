@@ -12,6 +12,7 @@ import ProfileManagement from "@/pages/ProfileManagement";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import { EducationalContentManager } from "@/pages/admin/EducationalContentManager";
 import { NewsManager } from "@/pages/admin/NewsManager";
+import { QuizManager } from "@/pages/admin/QuizManager";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/education" element={<EducationalContentManager />} />
         <Route path="/admin/news" element={<NewsManager />} />
+        <Route path="/admin/quizzes" element={<QuizManager />} />
       </Routes>
       <Toaster />
     </Router>
