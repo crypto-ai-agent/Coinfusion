@@ -109,6 +109,9 @@ export type Database = {
           display_name: string | null
           email_notifications: boolean | null
           id: string
+          phone_number: string | null
+          preferred_language: string | null
+          timezone: string | null
           updated_at: string | null
           username: string | null
         }
@@ -118,6 +121,9 @@ export type Database = {
           display_name?: string | null
           email_notifications?: boolean | null
           id: string
+          phone_number?: string | null
+          preferred_language?: string | null
+          timezone?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -127,6 +133,9 @@ export type Database = {
           display_name?: string | null
           email_notifications?: boolean | null
           id?: string
+          phone_number?: string | null
+          preferred_language?: string | null
+          timezone?: string | null
           updated_at?: string | null
           username?: string | null
         }
