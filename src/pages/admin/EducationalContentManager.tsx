@@ -6,7 +6,6 @@ import { ContentForm } from "@/components/admin/ContentForm";
 import { ContentTable } from "@/components/admin/ContentTable";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageLayoutManager } from "@/components/admin/PageLayoutManager";
 import { ContentCardManager } from "@/components/admin/ContentCardManager";
 
 type Content = {
@@ -151,7 +150,6 @@ export const EducationalContentManager = () => {
       <Tabs defaultValue="content" className="w-full">
         <TabsList>
           <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="layout">Page Layout</TabsTrigger>
           <TabsTrigger value="cards">Content Cards</TabsTrigger>
         </TabsList>
 
@@ -183,10 +181,6 @@ export const EducationalContentManager = () => {
               onDelete={handleDelete}
             />
           )}
-        </TabsContent>
-
-        <TabsContent value="layout">
-          <PageLayoutManager />
         </TabsContent>
 
         <TabsContent value="cards">

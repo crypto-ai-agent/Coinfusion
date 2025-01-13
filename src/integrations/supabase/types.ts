@@ -16,8 +16,12 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number
+          guides: Json | null
+          header_description: string | null
+          header_title: string | null
           id: string
           is_active: boolean | null
+          layout_type: string | null
           style_variant: string | null
           title: string
           updated_at: string | null
@@ -28,8 +32,12 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number
+          guides?: Json | null
+          header_description?: string | null
+          header_title?: string | null
           id?: string
           is_active?: boolean | null
+          layout_type?: string | null
           style_variant?: string | null
           title: string
           updated_at?: string | null
@@ -40,8 +48,12 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number
+          guides?: Json | null
+          header_description?: string | null
+          header_title?: string | null
           id?: string
           is_active?: boolean | null
+          layout_type?: string | null
           style_variant?: string | null
           title?: string
           updated_at?: string | null
@@ -102,6 +114,45 @@ export type Database = {
           feature_name?: string
           id?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      guides: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          difficulty: string
+          id: string
+          points: number | null
+          progress: number | null
+          read_time: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          difficulty: string
+          id?: string
+          points?: number | null
+          progress?: number | null
+          read_time: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          difficulty?: string
+          id?: string
+          points?: number | null
+          progress?: number | null
+          read_time?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

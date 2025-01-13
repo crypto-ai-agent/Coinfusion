@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { GuideSelector } from "./GuideSelector";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,10 @@ type ContentCard = {
   display_order: number;
   is_active: boolean;
   style_variant: string;
+  guides: any[];
+  layout_type: string;
+  header_title: string | null;
+  header_description: string | null;
 };
 
 export const ContentCardManager = () => {
@@ -80,6 +85,10 @@ export const ContentCardManager = () => {
           display_order: card.display_order,
           is_active: card.is_active,
           style_variant: card.style_variant,
+          guides: card.guides,
+          layout_type: card.layout_type,
+          header_title: card.header_title,
+          header_description: card.header_description,
         })
         .eq('id', card.id);
       if (error) throw error;
@@ -137,12 +146,25 @@ export const ContentCardManager = () => {
       display_order: parseInt(formData.get('display_order') as string),
       is_active: formData.get('is_active') === 'true',
       style_variant: formData.get('style_variant') as string,
+      layout_type: formData.get('layout_type') as string,
+      header_title: formData.get('header_title') as string,
+      header_description: formData.get('header_description') as string,
+      guides: editingCard?.guides || [],
     };
 
     if (editingCard) {
       updateCardMutation.mutate({ ...cardData, id: editingCard.id });
     } else {
       createCardMutation.mutate(cardData);
+    }
+  };
+
+  const handleGuideSelection = (guides: string[]) => {
+    if (editingCard) {
+      updateCardMutation.mutate({
+        ...editingCard,
+        guides: guides.map(id => ({ id })),
+      });
     }
   };
 
@@ -168,6 +190,16 @@ export const ContentCardManager = () => {
             placeholder="Card Description"
             defaultValue={editingCard?.description || ''}
           />
+          <Input
+            name="header_title"
+            placeholder="Header Title"
+            defaultValue={editingCard?.header_title || ''}
+          />
+          <Textarea
+            name="header_description"
+            placeholder="Header Description"
+            defaultValue={editingCard?.header_description || ''}
+          />
           <Select name="card_type" defaultValue={editingCard?.card_type || 'guide_collection'}>
             <SelectTrigger>
               <SelectValue placeholder="Select card type" />
@@ -179,6 +211,17 @@ export const ContentCardManager = () => {
               <SelectItem value="featured_content">Featured Content</SelectItem>
               <SelectItem value="ai_highlight">AI Highlight</SelectItem>
               <SelectItem value="news_collection">News Collection</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select name="layout_type" defaultValue={editingCard?.layout_type || 'default'}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select layout type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default</SelectItem>
+              <SelectItem value="grid">Grid</SelectItem>
+              <SelectItem value="list">List</SelectItem>
+              <SelectItem value="featured">Featured</SelectItem>
             </SelectContent>
           </Select>
           <Input
@@ -208,6 +251,14 @@ export const ContentCardManager = () => {
               <SelectItem value="expanded">Expanded</SelectItem>
             </SelectContent>
           </Select>
+          {editingCard && editingCard.card_type === 'guide_collection' && (
+            <div className="pt-4">
+              <GuideSelector
+                onSelect={handleGuideSelection}
+                selectedGuides={editingCard.guides?.map(g => g.id) || []}
+              />
+            </div>
+          )}
           <div className="flex justify-end space-x-2">
             <Button
               type="button"
