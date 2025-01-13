@@ -10,12 +10,14 @@ export const Rankings = () => {
     queryKey: ['cryptoPrices'],
     queryFn: fetchCryptoPrices,
     refetchInterval: 300000, // Refetch every 5 minutes
-    onError: (error) => {
-      toast({
-        title: "Error fetching crypto data",
-        description: error.message,
-        variant: "destructive",
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast({
+          title: "Error fetching crypto data",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
     },
   });
 
