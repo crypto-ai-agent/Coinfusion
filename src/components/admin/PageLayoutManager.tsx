@@ -24,7 +24,7 @@ export const PageLayoutManager = () => {
         .from('page_layouts')
         .select('*')
         .eq('page_name', selectedPage)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as PageLayout;
@@ -45,10 +45,10 @@ export const PageLayoutManager = () => {
         description: "Layout updated successfully.",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to update layout.",
+        description: error.message || "Failed to update layout.",
         variant: "destructive",
       });
     },
@@ -92,7 +92,7 @@ export const PageLayoutManager = () => {
               ref={provided.innerRef}
               className="space-y-2"
             >
-              {layouts?.layout_order.map((cardId: string, index: number) => (
+              {layouts?.layout_order?.map((cardId: string, index: number) => (
                 <Draggable key={cardId} draggableId={cardId} index={index}>
                   {(provided) => (
                     <div
@@ -111,6 +111,12 @@ export const PageLayoutManager = () => {
           )}
         </Droppable>
       </DragDropContext>
+
+      {!layouts?.layout_order?.length && (
+        <div className="text-center py-8 text-gray-500">
+          No layout items added yet. Add content cards to arrange them here.
+        </div>
+      )}
     </div>
   );
 };
