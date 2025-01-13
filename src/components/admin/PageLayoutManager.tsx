@@ -2,14 +2,23 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type PageLayout = {
   id: string;
   page_name: string;
   layout_order: string[];
+  created_at?: string;
+  updated_at?: string;
 };
 
 export const PageLayoutManager = () => {
@@ -17,7 +26,7 @@ export const PageLayoutManager = () => {
   const queryClient = useQueryClient();
   const [selectedPage, setSelectedPage] = useState("education");
 
-  const { data: layouts, isLoading } = useQuery({
+  const { data: layouts, isLoading, error } = useQuery({
     queryKey: ['pageLayouts', selectedPage],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,7 +44,12 @@ export const PageLayoutManager = () => {
     mutationFn: async (newLayout: PageLayout) => {
       const { error } = await supabase
         .from('page_layouts')
-        .upsert(newLayout);
+        .upsert({
+          id: newLayout.id,
+          page_name: newLayout.page_name,
+          layout_order: newLayout.layout_order,
+          updated_at: new Date().toISOString(),
+        });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -45,7 +59,8 @@ export const PageLayoutManager = () => {
         description: "Layout updated successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error("Update layout error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to update layout.",
@@ -67,21 +82,37 @@ export const PageLayoutManager = () => {
     });
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          Error loading page layouts: {error.message}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (isLoading) {
+    return <div className="p-4">Loading page layouts...</div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Page Layout Manager</h2>
-        <select
+        <Select
           value={selectedPage}
-          onChange={(e) => setSelectedPage(e.target.value)}
-          className="border rounded p-2"
+          onValueChange={(value) => setSelectedPage(value)}
         >
-          <option value="education">Education</option>
-          <option value="dashboard">Dashboard</option>
-          <option value="news">News</option>
-        </select>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select page" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="education">Education</SelectItem>
+            <SelectItem value="dashboard">Dashboard</SelectItem>
+            <SelectItem value="news">News</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -90,7 +121,7 @@ export const PageLayoutManager = () => {
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className="space-y-2"
+              className="space-y-2 min-h-[200px]"
             >
               {layouts?.layout_order?.map((cardId: string, index: number) => (
                 <Draggable key={cardId} draggableId={cardId} index={index}>
@@ -99,7 +130,7 @@ export const PageLayoutManager = () => {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className="p-4 bg-white rounded shadow"
+                      className="p-4 bg-white rounded shadow hover:shadow-md transition-shadow"
                     >
                       {cardId}
                     </div>
@@ -112,8 +143,8 @@ export const PageLayoutManager = () => {
         </Droppable>
       </DragDropContext>
 
-      {!layouts?.layout_order?.length && (
-        <div className="text-center py-8 text-gray-500">
+      {(!layouts?.layout_order || layouts.layout_order.length === 0) && (
+        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
           No layout items added yet. Add content cards to arrange them here.
         </div>
       )}
