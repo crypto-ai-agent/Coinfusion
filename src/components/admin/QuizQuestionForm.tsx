@@ -3,6 +3,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type QuizQuestionFormProps = {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -92,11 +99,7 @@ export const QuizQuestionForm = ({
         )}
       </div>
 
-      <Select 
-        name="correct_answer"
-        defaultValue={defaultValues?.correct_answer}
-        required
-      >
+      <Select name="correct_answer" defaultValue={defaultValues?.correct_answer}>
         <SelectTrigger>
           <SelectValue placeholder="Select correct answer" />
         </SelectTrigger>

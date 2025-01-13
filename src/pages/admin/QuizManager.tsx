@@ -7,10 +7,23 @@ import { QuizForm } from "@/components/admin/QuizForm";
 import { QuizQuestionForm } from "@/components/admin/QuizQuestionForm";
 import { ContentTable } from "@/components/admin/ContentTable";
 
+type Quiz = {
+  id: string;
+  title: string;
+  description: string;
+  category_id: string;
+  points: number;
+  difficulty_level: string;
+  estimated_duration: string;
+  quiz_categories: {
+    name: string;
+  };
+};
+
 export const QuizManager = () => {
   const [isAddingQuiz, setIsAddingQuiz] = useState(false);
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
-  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -39,17 +52,17 @@ export const QuizManager = () => {
         `)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data;
+      return data as Quiz[];
     },
   });
 
   const createQuizMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const quizData = {
-        title: formData.get('title'),
-        description: formData.get('description'),
-        difficulty_level: formData.get('difficulty_level'),
-        category_id: formData.get('category_id'),
+        title: String(formData.get('title')),
+        description: String(formData.get('description')),
+        difficulty_level: String(formData.get('difficulty_level')),
+        category_id: String(formData.get('category_id')),
         estimated_duration: `00:${formData.get('estimated_duration')}:00`,
         points: Number(formData.get('points')),
       };
@@ -84,16 +97,16 @@ export const QuizManager = () => {
     mutationFn: async (formData: FormData) => {
       const options = Array.from(formData.entries())
         .filter(([key]) => key.startsWith('option_'))
-        .map(([, value]) => value as string);
+        .map(([, value]) => String(value));
 
       const questionData = {
-        quiz_id: selectedQuiz.id,
-        question: formData.get('question'),
+        quiz_id: selectedQuiz?.id,
+        question: String(formData.get('question')),
         options,
-        correct_answer: formData.get('correct_answer'),
-        explanation: formData.get('explanation'),
-        feedback_correct: formData.get('feedback_correct'),
-        feedback_incorrect: formData.get('feedback_incorrect'),
+        correct_answer: String(formData.get('correct_answer')),
+        explanation: String(formData.get('explanation')),
+        feedback_correct: String(formData.get('feedback_correct')),
+        feedback_incorrect: String(formData.get('feedback_incorrect')),
       };
 
       const { error } = await supabase
@@ -168,7 +181,7 @@ export const QuizManager = () => {
 
       <ContentTable
         items={quizzes || []}
-        onEdit={(quiz) => setSelectedQuiz(quiz)}
+        onEdit={(quiz) => setSelectedQuiz(quiz as Quiz)}
         onDelete={() => {}} // Implement delete functionality
       />
     </div>
