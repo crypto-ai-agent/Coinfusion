@@ -1,12 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchCryptoPrices } from "@/utils/api";
 import { CryptoTabs } from "./rankings/CryptoTabs";
+import { useToast } from "@/components/ui/use-toast";
 
 export const Rankings = () => {
-  const { data: cryptos = [], isLoading } = useQuery({
+  const { toast } = useToast();
+  
+  const { data: cryptos = [], isLoading, error } = useQuery({
     queryKey: ['cryptoPrices'],
     queryFn: fetchCryptoPrices,
     refetchInterval: 300000, // Refetch every 5 minutes
+    onError: (error) => {
+      toast({
+        title: "Error fetching crypto data",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const tokens = cryptos.filter(crypto => !crypto.is_stablecoin);
