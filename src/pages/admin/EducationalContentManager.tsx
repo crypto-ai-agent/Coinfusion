@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ContentForm } from "@/components/admin/ContentForm";
 import { ContentTable } from "@/components/admin/ContentTable";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageLayoutManager } from "@/components/admin/PageLayoutManager";
+import { ContentCardManager } from "@/components/admin/ContentCardManager";
 
 type Content = {
   id: string;
@@ -145,33 +148,51 @@ export const EducationalContentManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Educational Content</h2>
-        {!editingContent && (
-          <Button onClick={() => setIsAddingContent(true)}>
-            Add New Content
-          </Button>
-        )}
-      </div>
+      <Tabs defaultValue="content" className="w-full">
+        <TabsList>
+          <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="layout">Page Layout</TabsTrigger>
+          <TabsTrigger value="cards">Content Cards</TabsTrigger>
+        </TabsList>
 
-      {(isAddingContent || editingContent) ? (
-        <ContentForm 
-          onSubmit={handleSubmit}
-          onClose={() => {
-            setIsAddingContent(false);
-            setEditingContent(null);
-          }}
-          type="education"
-          isEditing={!!editingContent}
-          defaultValues={editingContent || undefined}
-        />
-      ) : (
-        <ContentTable 
-          items={content || []}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      )}
+        <TabsContent value="content">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">Educational Content</h2>
+            {!editingContent && (
+              <Button onClick={() => setIsAddingContent(true)}>
+                Add New Content
+              </Button>
+            )}
+          </div>
+
+          {(isAddingContent || editingContent) ? (
+            <ContentForm 
+              onSubmit={handleSubmit}
+              onClose={() => {
+                setIsAddingContent(false);
+                setEditingContent(null);
+              }}
+              type="education"
+              isEditing={!!editingContent}
+              defaultValues={editingContent || undefined}
+            />
+          ) : (
+            <ContentTable 
+              items={content || []}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="layout">
+          <PageLayoutManager />
+        </TabsContent>
+
+        <TabsContent value="cards">
+          <ContentCardManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

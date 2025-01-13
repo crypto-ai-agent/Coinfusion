@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      content_cards: {
+        Row: {
+          card_type: Database["public"]["Enums"]["card_type"]
+          content_ids: string[] | null
+          created_at: string | null
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean | null
+          style_variant: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          card_type: Database["public"]["Enums"]["card_type"]
+          content_ids?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean | null
+          style_variant?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          card_type?: Database["public"]["Enums"]["card_type"]
+          content_ids?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean | null
+          style_variant?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       educational_content: {
         Row: {
           author_id: string
@@ -98,6 +137,30 @@ export type Database = {
           published?: boolean | null
           slug?: string
           title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      page_layouts: {
+        Row: {
+          created_at: string | null
+          id: string
+          layout_order: Json
+          page_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          layout_order?: Json
+          page_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          layout_order?: Json
+          page_name?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -487,6 +550,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      card_type:
+        | "guide_collection"
+        | "quiz_section"
+        | "progress_tracker"
+        | "featured_content"
+        | "ai_highlight"
+        | "news_collection"
     }
     CompositeTypes: {
       [_ in never]: never
