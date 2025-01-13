@@ -1,17 +1,11 @@
-import { CoinData, CryptoDetails } from '../types/crypto';
+import type { CoinData, CryptoDetails } from '../types/crypto';
 import { generateMockAnalysis } from '../mockAnalysisData';
 
-const CMC_API_KEY = localStorage.getItem('CMC_API_KEY');
-
-export const fetchFromCoinMarketCap = async (): Promise<CoinData[]> => {
-  if (!CMC_API_KEY) {
-    throw new Error('CoinMarketCap API key not found');
-  }
-
+export const fetchFromCoinMarketCap = async (apiKey: string): Promise<CoinData[]> => {
   try {
     const response = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=20', {
       headers: {
-        'X-CMC_PRO_API_KEY': CMC_API_KEY,
+        'X-CMC_PRO_API_KEY': apiKey,
         'Accept': 'application/json'
       }
     });
@@ -34,25 +28,16 @@ export const fetchFromCoinMarketCap = async (): Promise<CoinData[]> => {
       type: coin.tags?.includes('stablecoin') ? 'stablecoin' : 'cryptocurrency'
     }));
   } catch (error) {
-    console.error('Error fetching from CoinMarketCap:', error);
+    console.error('Error fetching crypto prices:', error);
     return [];
   }
 };
 
-export const fetchCryptoDetailsCoinMarketCap = async (id: string): Promise<CryptoDetails> => {
-  if (!CMC_API_KEY) {
-    throw new Error('CoinMarketCap API key not found');
-  }
-
+export const fetchCryptoDetailsCoinMarketCap = async (id: string, apiKey: string): Promise<CryptoDetails> => {
   try {
-    // Fetch basic coin data
-    const url = new URL('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest');
-    url.searchParams.append('id', id);
-    url.searchParams.append('convert', 'USD');
-
-    const response = await fetch(url.toString(), {
+    const response = await fetch(`https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=${id}`, {
       headers: {
-        'X-CMC_PRO_API_KEY': CMC_API_KEY,
+        'X-CMC_PRO_API_KEY': apiKey,
         'Accept': 'application/json'
       }
     });
@@ -62,68 +47,47 @@ export const fetchCryptoDetailsCoinMarketCap = async (id: string): Promise<Crypt
     }
 
     const data = await response.json();
-    const cmcData = data.data[id];
-
-    // Fetch metadata
-    const metadataUrl = new URL('https://pro-api.coinmarketcap.com/v2/cryptocurrency/info');
-    metadataUrl.searchParams.append('id', id);
-    
-    const metadataResponse = await fetch(metadataUrl.toString(), {
-      headers: {
-        'X-CMC_PRO_API_KEY': CMC_API_KEY,
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (!metadataResponse.ok) {
-      throw new Error('Failed to fetch crypto metadata');
-    }
-
-    const metadata = await metadataResponse.json();
-    const coinMetadata = metadata.data[id];
-
-    // Generate mock analysis data
+    const coin = data.data[id];
     const mockAnalysis = generateMockAnalysis(
-      cmcData.quote.USD.price,
-      cmcData.quote.USD.percent_change_24h,
-      cmcData.quote.USD.market_cap,
-      cmcData.quote.USD.volume_24h,
-      cmcData.name
+      coin.quote.USD.price,
+      coin.quote.USD.percent_change_24h,
+      coin.quote.USD.market_cap,
+      coin.quote.USD.volume_24h,
+      coin.name
     );
 
     return {
-      id: cmcData.id.toString(),
-      name: cmcData.name,
-      symbol: cmcData.symbol,
-      logo: coinMetadata.logo || '',
-      description: coinMetadata.description || '',
-      price_usd: cmcData.quote.USD.price,
-      percent_change_24h: cmcData.quote.USD.percent_change_24h,
-      market_cap_usd: cmcData.quote.USD.market_cap,
-      volume_24h_usd: cmcData.quote.USD.volume_24h,
-      is_stablecoin: cmcData.tags?.includes('stablecoin') || false,
-      type: cmcData.tags?.includes('stablecoin') ? 'stablecoin' : 'cryptocurrency',
-      contract_address: cmcData.platform?.token_address || '',
-      blockchain: cmcData.platform?.name || 'N/A',
-      price_history: [], // Historical data would need a separate API call
-      circulating_supply: cmcData.circulating_supply,
-      max_supply: cmcData.max_supply,
-      total_supply: cmcData.total_supply,
-      high_24h: cmcData.quote.USD.high_24h || cmcData.quote.USD.price,
-      low_24h: cmcData.quote.USD.low_24h || cmcData.quote.USD.price,
-      rank: cmcData.cmc_rank,
-      market_cap_dominance: cmcData.quote.USD.market_cap_dominance,
-      category: cmcData.category || 'cryptocurrency',
-      launch_date: cmcData.date_added,
-      website: coinMetadata.urls?.website?.[0] || '#',
-      twitter_handle: coinMetadata.urls?.twitter?.[0]?.replace('https://twitter.com/', ''),
-      github_repo: coinMetadata.urls?.source_code?.[0] || '',
-      whitepaper: coinMetadata.urls?.technical_doc?.[0] || '',
-      alerts: [],
+      id: coin.id.toString(),
+      name: coin.name,
+      symbol: coin.symbol,
+      logo: coin.logo || '',
+      description: coin.description || '',
+      price_usd: coin.quote.USD.price,
+      percent_change_24h: coin.quote.USD.percent_change_24h,
+      market_cap_usd: coin.quote.USD.market_cap,
+      volume_24h_usd: coin.quote.USD.volume_24h,
+      is_stablecoin: coin.tags?.includes('stablecoin') || false,
+      type: coin.tags?.includes('stablecoin') ? 'stablecoin' : 'cryptocurrency',
+      contract_address: coin.platform?.token_address || '',
+      blockchain: coin.platform?.name || 'N/A',
+      price_history: [], // We'll need historical data API for this
+      circulating_supply: coin.circulating_supply,
+      max_supply: coin.max_supply,
+      total_supply: coin.total_supply,
+      high_24h: coin.quote.USD.high_24h || coin.quote.USD.price,
+      low_24h: coin.quote.USD.low_24h || coin.quote.USD.price,
+      rank: coin.cmc_rank,
+      market_cap_dominance: coin.quote.USD.market_cap_dominance,
+      category: coin.category || 'cryptocurrency',
+      launch_date: coin.date_added,
+      website: coin.urls?.website?.[0] || '#',
+      twitter_handle: coin.urls?.twitter?.[0]?.replace('https://twitter.com/', ''),
+      github_repo: coin.urls?.source_code?.[0] || '',
+      whitepaper: coin.urls?.technical_doc?.[0] || '',
       ...mockAnalysis,
     };
   } catch (error) {
-    console.error('Error fetching from CoinMarketCap:', error);
+    console.error('Error fetching crypto details:', error);
     throw error;
   }
 };
