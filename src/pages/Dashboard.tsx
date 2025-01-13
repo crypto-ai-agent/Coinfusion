@@ -9,6 +9,7 @@ import { LearningProgress } from "@/components/dashboard/LearningProgress";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import { Menu } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ const Dashboard = () => {
       .from('feature_requests')
       .insert([{ feature_name: featureName, user_id: session.user.id }]);
 
-    if (error && error.code !== '23505') { // Ignore unique violation errors
+    if (error && error.code !== '23505') {
       toast({
         title: "Error",
         description: "Failed to register your interest. Please try again.",
@@ -83,9 +84,20 @@ const Dashboard = () => {
         <DashboardSidebar />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto space-y-6">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-primary">Welcome Back!</h1>
-              <p className="text-gray-600 mt-2">Track your progress and explore new features</p>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-primary">Welcome Back!</h1>
+                <p className="text-gray-600 mt-2">Track your progress and explore new features</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => document.querySelector('[data-sidebar="trigger"]')?.click()}
+              >
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle Sidebar</span>
+              </Button>
             </div>
 
             <DashboardStats
