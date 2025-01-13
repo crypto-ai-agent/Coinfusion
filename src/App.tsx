@@ -10,8 +10,8 @@ import News from "@/pages/News";
 import CryptoDetails from "@/pages/CryptoDetails";
 import ProfileManagement from "@/pages/ProfileManagement";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
-import EducationalContentManager from "@/pages/admin/EducationalContentManager";
-import NewsManager from "@/pages/admin/NewsManager";
+import { EducationalContentManager } from "@/pages/admin/EducationalContentManager";
+import { NewsManager } from "@/pages/admin/NewsManager";
 
 function App() {
   return (
