@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { CardSelector } from "./CardSelector";
+import { CardPreview } from "./CardPreview";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,14 @@ type PageLayout = {
   updated_at?: string;
 };
 
+const AVAILABLE_PAGES = [
+  { value: 'home', label: 'Homepage' },
+  { value: 'education', label: 'Education' },
+  { value: 'rankings', label: 'Rankings' },
+  { value: 'news', label: 'News' },
+  { value: 'dashboard', label: 'Dashboard' }
+];
+
 export const PageLayoutManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -39,6 +48,18 @@ export const PageLayoutManager = () => {
 
       if (error) throw error;
       return data as PageLayout;
+    },
+  });
+
+  const { data: contentCards } = useQuery({
+    queryKey: ['contentCards'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('content_cards')
+        .select('*')
+        .order('display_order');
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -85,14 +106,31 @@ export const PageLayoutManager = () => {
   };
 
   const handleAddCard = (cardId: string) => {
+    if (!layouts) {
+      // Create new layout if it doesn't exist
+      const newLayout = {
+        id: crypto.randomUUID(),
+        page_name: selectedPage,
+        layout_order: [cardId],
+      };
+      updateLayoutMutation.mutate(newLayout);
+    } else {
+      const newLayout = {
+        ...layouts,
+        layout_order: [...(layouts.layout_order || []), cardId],
+      };
+      updateLayoutMutation.mutate(newLayout);
+    }
+  };
+
+  const handleRemoveCard = (index: number) => {
     if (!layouts) return;
-
-    const newLayout = {
+    const newOrder = [...layouts.layout_order];
+    newOrder.splice(index, 1);
+    updateLayoutMutation.mutate({
       ...layouts,
-      layout_order: [...(layouts.layout_order || []), cardId],
-    };
-
-    updateLayoutMutation.mutate(newLayout);
+      layout_order: newOrder,
+    });
   };
 
   if (error) {
@@ -118,9 +156,11 @@ export const PageLayoutManager = () => {
               <SelectValue placeholder="Select page" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="education">Education</SelectItem>
-              <SelectItem value="dashboard">Dashboard</SelectItem>
-              <SelectItem value="news">News</SelectItem>
+              {AVAILABLE_PAGES.map((page) => (
+                <SelectItem key={page.value} value={page.value}>
+                  {page.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <CardSelector onSelect={handleAddCard} />
@@ -147,9 +187,19 @@ export const PageLayoutManager = () => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className="p-4 bg-white rounded shadow hover:shadow-md transition-shadow"
+                        className="group relative"
                       >
-                        {cardId}
+                        <div className="p-4 bg-white rounded shadow hover:shadow-md transition-shadow">
+                          <CardPreview cardId={cardId} />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleRemoveCard(index)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </Draggable>

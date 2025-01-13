@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 type ContentCard = {
   id: string;
   title: string;
   description: string | null;
   card_type: string;
+  style_variant: string;
 };
 
 export const CardPreview = ({ cardId }: { cardId: string }) => {
@@ -14,7 +16,7 @@ export const CardPreview = ({ cardId }: { cardId: string }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('content_cards')
-        .select('id, title, description, card_type')
+        .select('id, title, description, card_type, style_variant')
         .eq('id', cardId)
         .single();
       
@@ -32,14 +34,17 @@ export const CardPreview = ({ cardId }: { cardId: string }) => {
   }
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
-      <h3 className="font-medium">{card.title}</h3>
+    <div className="space-y-2">
+      <div className="flex items-start justify-between">
+        <h3 className="font-medium">{card.title}</h3>
+        <div className="flex gap-2">
+          <Badge variant="secondary">{card.card_type}</Badge>
+          <Badge variant="outline">{card.style_variant}</Badge>
+        </div>
+      </div>
       {card.description && (
-        <p className="text-sm text-gray-600 mt-1">{card.description}</p>
+        <p className="text-sm text-muted-foreground">{card.description}</p>
       )}
-      <span className="inline-block mt-2 text-xs bg-gray-100 px-2 py-1 rounded">
-        {card.card_type}
-      </span>
     </div>
   );
 };
