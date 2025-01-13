@@ -93,7 +93,7 @@ const DashboardContent = () => {
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="block md:hidden"
+              className="flex items-center justify-center"
             >
               <Menu className="h-6 w-6" />
               <span className="sr-only">Toggle Sidebar</span>
