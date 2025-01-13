@@ -84,20 +84,20 @@ const DashboardContent = () => {
       <DashboardSidebar />
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-primary">Welcome Back!</h1>
-              <p className="text-gray-600 mt-2">Track your progress and explore new features</p>
-            </div>
+          <div className="flex items-center mb-8">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="flex items-center justify-center"
+              className="flex items-center justify-center mr-4"
             >
               <Menu className="h-6 w-6" />
               <span className="sr-only">Toggle Sidebar</span>
             </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary">Welcome Back!</h1>
+              <p className="text-gray-600 mt-2">Track your progress and explore new features</p>
+            </div>
           </div>
 
           <DashboardStats
