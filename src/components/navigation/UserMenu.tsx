@@ -1,5 +1,6 @@
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,8 @@ interface UserMenuProps {
 }
 
 export const UserMenu = ({ userEmail, onLogout }: UserMenuProps) => {
+  const navigate = useNavigate();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,6 +26,10 @@ export const UserMenu = ({ userEmail, onLogout }: UserMenuProps) => {
       <DropdownMenuContent align="end">
         <DropdownMenuItem className="text-sm text-gray-500">
           {userEmail}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/profile")}>
+          <Settings className="mr-2 h-4 w-4" />
+          Profile Settings
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onLogout}>
           <LogOut className="mr-2 h-4 w-4" />

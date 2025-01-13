@@ -1,44 +1,37 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Navigation } from "@/components/Navigation";
 import { Toaster } from "@/components/ui/toaster";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Education from "./pages/Education";
-import News from "./pages/News";
-import Rankings from "./pages/Rankings";
-import CryptoDetails from "./pages/CryptoDetails";
-import CryptoBasics from "./pages/educational/CryptoBasics";
-import Security from "./pages/educational/Security";
-import Investment from "./pages/educational/Investment";
-import Advanced from "./pages/educational/Advanced";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import Dashboard from "./pages/Dashboard";
-
-import "./App.css";
-
-const queryClient = new QueryClient();
+import Index from "@/pages/Index";
+import Auth from "@/pages/Auth";
+import Dashboard from "@/pages/Dashboard";
+import Education from "@/pages/Education";
+import Rankings from "@/pages/Rankings";
+import News from "@/pages/News";
+import CryptoDetails from "@/pages/CryptoDetails";
+import ProfileManagement from "@/pages/ProfileManagement";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import EducationalContentManager from "@/pages/admin/EducationalContentManager";
+import NewsManager from "@/pages/admin/NewsManager";
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard/*" element={<Dashboard />} />
-          <Route path="/education" element={<Education />} />
-          <Route path="/news" element={<News />} />
-          <Route path="/rankings" element={<Rankings />} />
-          <Route path="/crypto/:id" element={<CryptoDetails />} />
-          <Route path="/education/crypto-basics" element={<CryptoBasics />} />
-          <Route path="/education/security" element={<Security />} />
-          <Route path="/education/investment" element={<Investment />} />
-          <Route path="/education/advanced" element={<Advanced />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Routes>
-      </Router>
+    <Router>
+      <Navigation />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/education" element={<Education />} />
+        <Route path="/rankings" element={<Rankings />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/crypto/:id" element={<CryptoDetails />} />
+        <Route path="/profile" element={<ProfileManagement />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/education" element={<EducationalContentManager />} />
+        <Route path="/admin/news" element={<NewsManager />} />
+      </Routes>
       <Toaster />
-    </QueryClientProvider>
+    </Router>
   );
 }
 
