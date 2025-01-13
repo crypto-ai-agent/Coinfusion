@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { LearningProgress } from "@/components/dashboard/LearningProgress";
@@ -11,9 +11,10 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { Menu } from "lucide-react";
 
-const Dashboard = () => {
+const DashboardContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { toggleSidebar } = useSidebar();
 
   const { data: userProgress, isLoading } = useQuery({
     queryKey: ['userProgress'],
@@ -79,61 +80,67 @@ const Dashboard = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
-        <DashboardSidebar />
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h1 className="text-3xl font-bold text-primary">Welcome Back!</h1>
-                <p className="text-gray-600 mt-2">Track your progress and explore new features</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => document.querySelector('[data-sidebar="trigger"]')?.click()}
-              >
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle Sidebar</span>
-              </Button>
+    <div className="min-h-screen flex w-full bg-gray-50">
+      <DashboardSidebar />
+      <main className="flex-1 p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-primary">Welcome Back!</h1>
+              <p className="text-gray-600 mt-2">Track your progress and explore new features</p>
             </div>
-
-            <DashboardStats
-              totalPoints={userProgress?.total_points || 0}
-              currentStreak={userProgress?.current_streak || 0}
-              completedContent={userProgress?.completed_content || []}
-              lastActivity={userProgress?.last_activity || new Date().toISOString()}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <LearningProgress
-                completedContent={userProgress?.completed_content || []}
-                totalTopics={4}
-              />
-              <RecentActivity
-                completedContent={userProgress?.completed_content || []}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {['Portfolio Tracking', 'Airdrops', 'API Access'].map((feature) => (
-                <div key={feature} className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-semibold mb-2">{feature}</h3>
-                  <p className="text-gray-600 mb-4">Coming soon! Show your interest in this feature.</p>
-                  <Button 
-                    onClick={() => handleFeatureRequest(feature)}
-                    className="w-full"
-                  >
-                    I'm Interested
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="block md:hidden"
+            >
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle Sidebar</span>
+            </Button>
           </div>
-        </main>
-      </div>
+
+          <DashboardStats
+            totalPoints={userProgress?.total_points || 0}
+            currentStreak={userProgress?.current_streak || 0}
+            completedContent={userProgress?.completed_content || []}
+            lastActivity={userProgress?.last_activity || new Date().toISOString()}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <LearningProgress
+              completedContent={userProgress?.completed_content || []}
+              totalTopics={4}
+            />
+            <RecentActivity
+              completedContent={userProgress?.completed_content || []}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {['Portfolio Tracking', 'Airdrops', 'API Access'].map((feature) => (
+              <div key={feature} className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold mb-2">{feature}</h3>
+                <p className="text-gray-600 mb-4">Coming soon! Show your interest in this feature.</p>
+                <Button 
+                  onClick={() => handleFeatureRequest(feature)}
+                  className="w-full"
+                >
+                  I'm Interested
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+const Dashboard = () => {
+  return (
+    <SidebarProvider>
+      <DashboardContent />
     </SidebarProvider>
   );
 };
