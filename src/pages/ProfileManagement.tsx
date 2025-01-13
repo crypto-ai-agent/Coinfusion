@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PasswordResetForm } from "@/components/profile/PasswordResetForm";
 
 interface Profile {
   username: string | null;
@@ -104,7 +105,7 @@ const ProfileManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Profile Settings</CardTitle>
@@ -210,6 +211,15 @@ const ProfileManagement = () => {
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Password Management</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PasswordResetForm />
           </CardContent>
         </Card>
       </div>

@@ -1,8 +1,8 @@
 import { Navigation } from "@/components/Navigation";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EducationalContentManager } from "./EducationalContentManager";
 import { NewsManager } from "./NewsManager";
+import { UserProfilesManager } from "@/components/admin/UserProfilesManager";
 
 const AdminDashboard = () => {
   return (
@@ -17,12 +17,16 @@ const AdminDashboard = () => {
           <TabsList className="mb-8">
             <TabsTrigger value="education">Educational Content</TabsTrigger>
             <TabsTrigger value="news">News Articles</TabsTrigger>
+            <TabsTrigger value="users">User Profiles</TabsTrigger>
           </TabsList>
           <TabsContent value="education">
             <EducationalContentManager />
           </TabsContent>
           <TabsContent value="news">
             <NewsManager />
+          </TabsContent>
+          <TabsContent value="users">
+            <UserProfilesManager />
           </TabsContent>
         </Tabs>
       </div>
