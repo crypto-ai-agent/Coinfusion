@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { QuizForm } from "@/components/admin/QuizForm";
 import { QuizQuestionForm } from "@/components/admin/QuizQuestionForm";
-import { ContentTable } from "@/components/admin/ContentTable";
 
 type Quiz = {
   id: string;
@@ -136,6 +135,30 @@ export const QuizManager = () => {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('quizzes')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+      toast({
+        title: "Success",
+        description: "Quiz deleted successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete quiz. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleQuizSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -146,6 +169,12 @@ export const QuizManager = () => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     createQuestionMutation.mutate(formData);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this quiz?')) {
+      deleteMutation.mutate(id);
+    }
   };
 
   if (isLoading) {
