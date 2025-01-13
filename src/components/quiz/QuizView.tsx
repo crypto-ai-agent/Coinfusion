@@ -81,7 +81,7 @@ export const QuizView = ({ quiz, onComplete }: QuizViewProps) => {
       const { error: progressError } = await supabase
         .from('user_progress')
         .update({
-          total_points: supabase.raw(`total_points + ${pointsEarned}`),
+          total_points: pointsEarned,
           last_activity: new Date().toISOString(),
         })
         .eq('user_id', session.user.id);

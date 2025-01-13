@@ -15,6 +15,10 @@ type Quiz = {
   points: number;
   difficulty_level: string;
   estimated_duration: string;
+  published?: boolean;
+  category?: string;
+  author_id?: string;
+  slug?: string;
   quiz_categories: {
     name: string;
   };
@@ -179,11 +183,38 @@ export const QuizManager = () => {
         />
       )}
 
-      <ContentTable
-        items={quizzes || []}
-        onEdit={(quiz) => setSelectedQuiz(quiz as Quiz)}
-        onDelete={() => {}} // Implement delete functionality
-      />
+      {quizzes && quizzes.length > 0 ? (
+        <div className="grid gap-4">
+          {quizzes.map((quiz) => (
+            <div key={quiz.id} className="p-4 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-medium">{quiz.title}</h3>
+                  <p className="text-sm text-gray-600">{quiz.description}</p>
+                </div>
+                <div className="space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedQuiz(quiz)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(quiz.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-center text-gray-600">No quizzes found. Create one to get started!</p>
+      )}
     </div>
   );
 };
