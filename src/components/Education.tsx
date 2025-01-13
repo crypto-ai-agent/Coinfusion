@@ -86,11 +86,20 @@ export const Education = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('content_cards')
-        .select('*')
+        .select(`
+          id,
+          title,
+          description,
+          card_type,
+          content_ids,
+          display_order,
+          is_active,
+          style_variant
+        `)
         .eq('is_active', true)
         .order('display_order');
       if (error) throw error;
-      return data as ContentCard[];
+      return data;
     },
   });
 

@@ -6,6 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -18,6 +19,8 @@ serve(async (req) => {
       throw new Error('CMC_API_KEY not found')
     }
 
+    console.log('Fetching from CoinMarketCap:', endpoint)
+    
     const url = `https://pro-api.coinmarketcap.com/v1/${endpoint}`
     const response = await fetch(url, {
       headers: {
@@ -26,13 +29,18 @@ serve(async (req) => {
       }
     })
 
-    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(`CoinMarketCap API responded with status: ${response.status}`)
+    }
 
+    const data = await response.json()
+    
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error) {
+    console.error('Error in crypto-proxy:', error)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
