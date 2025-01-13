@@ -3,9 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { ProgressHeader } from "./education/ProgressHeader";
 import { TopicCard } from "./education/TopicCard";
 import { Button } from "./ui/button";
+
+type CardType = "guide_collection" | "quiz_section" | "progress_tracker" | "featured_content" | "ai_highlight" | "news_collection";
+
+type ContentCard = {
+  id: string;
+  title: string;
+  description: string | null;
+  card_type: CardType;
+  content_ids: string[];
+  display_order: number;
+  is_active: boolean;
+  style_variant: string;
+};
 
 export const Education = () => {
   const navigate = useNavigate();
@@ -18,40 +32,31 @@ export const Education = () => {
     last_activity: string;
   } | null>(null);
 
-  const topics = [
-    {
-      title: "Crypto Basics",
-      description: "Learn the fundamentals of cryptocurrency and blockchain technology",
-      icon: BookOpen,
-      link: "/education/crypto-basics",
-      difficulty: "Beginner",
-      points: 100
+  const { data: layout } = useQuery({
+    queryKey: ['pageLayout', 'education'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('page_layouts')
+        .select('*')
+        .eq('page_name', 'education')
+        .single();
+      if (error) throw error;
+      return data;
     },
-    {
-      title: "Security",
-      description: "Understand how to keep your crypto investments safe",
-      icon: Shield,
-      link: "/education/security",
-      difficulty: "Intermediate",
-      points: 150
+  });
+
+  const { data: contentCards } = useQuery({
+    queryKey: ['contentCards'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('content_cards')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order');
+      if (error) throw error;
+      return data as ContentCard[];
     },
-    {
-      title: "Investment",
-      description: "Master the strategies for successful crypto investing",
-      icon: TrendingUp,
-      link: "/education/investment",
-      difficulty: "Advanced",
-      points: 200
-    },
-    {
-      title: "Advanced Topics",
-      description: "Dive deep into DeFi, NFTs, and emerging trends",
-      icon: Lightbulb,
-      link: "/education/advanced",
-      difficulty: "Expert",
-      points: 250
-    },
-  ];
+  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -98,6 +103,26 @@ export const Education = () => {
     checkAuth();
   }, []);
 
+  const renderCard = (card: ContentCard) => {
+    switch (card.card_type) {
+      case 'guide_collection':
+        return (
+          <div key={card.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Render guide collection */}
+          </div>
+        );
+      case 'quiz_section':
+        return (
+          <div key={card.id} className="bg-primary/5 p-6 rounded-lg">
+            {/* Render quiz section */}
+          </div>
+        );
+      // Add more card type renderers as needed
+      default:
+        return null;
+    }
+  };
+
   return (
     <section id="education" className="py-20 bg-gray-50 rounded-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -129,14 +154,11 @@ export const Education = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {topics.map((topic) => (
-            <TopicCard
-              key={topic.title}
-              {...topic}
-              isCompleted={userProgress?.completed_content.includes(topic.title) || false}
-            />
-          ))}
+        <div className="space-y-12">
+          {layout?.layout_order.map((cardId) => {
+            const card = contentCards?.find((c) => c.id === cardId);
+            return card ? renderCard(card) : null;
+          })}
         </div>
       </div>
     </section>
