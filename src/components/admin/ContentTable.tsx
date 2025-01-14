@@ -55,7 +55,7 @@ export const ContentTable = ({ items, onEdit, onDelete, onAddQuiz }: ContentTabl
             <TableCell>
               {item.content_type === 'educational' && (
                 item.has_quiz ? (
-                  <Badge variant="success">Has Quiz</Badge>
+                  <Badge variant="outline">Has Quiz</Badge>
                 ) : onAddQuiz && (
                   <Button
                     variant="outline"

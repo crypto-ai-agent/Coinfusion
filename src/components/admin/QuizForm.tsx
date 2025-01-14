@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type QuizFormProps = {
   contentId?: string;
-  onComplete: () => void;
+  onComplete: (id: string) => void;
   onCancel: () => void;
 };
 
@@ -20,7 +20,6 @@ export const QuizForm = ({ contentId, onComplete, onCancel }: QuizFormProps) => 
 
   const createQuizMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      // First create the quiz
       const { data: quiz, error: quizError } = await supabase
         .from('quizzes')
         .insert([{
@@ -36,29 +35,15 @@ export const QuizForm = ({ contentId, onComplete, onCancel }: QuizFormProps) => 
 
       if (quizError) throw quizError;
 
-      // Then create all questions
-      const questionsData = questions.map(q => ({
-        quiz_id: quiz.id,
-        question: q.question,
-        options: q.options,
-        correct_answer: q.correctAnswer,
-      }));
-
-      const { error: questionsError } = await supabase
-        .from('quiz_questions')
-        .insert(questionsData);
-
-      if (questionsError) throw questionsError;
-
       return quiz;
     },
-    onSuccess: () => {
+    onSuccess: (quiz) => {
       queryClient.invalidateQueries({ queryKey: ['quizzes'] });
       toast({
         title: "Success",
         description: "Quiz created successfully.",
       });
-      onComplete();
+      onComplete(quiz.id);
     },
     onError: () => {
       toast({

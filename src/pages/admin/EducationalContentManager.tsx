@@ -63,8 +63,7 @@ export const EducationalContentManager = () => {
 
       // If it's educational content and user wants to add a quiz
       if (data.content_type === 'educational' && data.has_quiz) {
-        setCurrentEducationalContent(data);
-        setShowQuizDialog(true);
+        setQuizContent(data);
       }
     },
     onError: () => {

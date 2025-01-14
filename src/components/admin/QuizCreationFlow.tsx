@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 interface QuizCreationFlowProps {
@@ -31,6 +32,11 @@ export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreati
           <DialogTitle>
             {step === 'quiz' ? 'Create Quiz' : 'Add Questions'}
           </DialogTitle>
+          <DialogDescription>
+            {step === 'quiz' 
+              ? 'First, set up the basic quiz information'
+              : 'Now, add questions to your quiz'}
+          </DialogDescription>
         </DialogHeader>
 
         {step === 'quiz' ? (
@@ -42,7 +48,6 @@ export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreati
         ) : (
           <div className="space-y-4">
             <QuizQuestionForm
-              quizId={quizId!}
               onSubmit={() => {}}
               onClose={() => {}}
             />

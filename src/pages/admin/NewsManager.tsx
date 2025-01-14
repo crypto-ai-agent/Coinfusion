@@ -14,6 +14,7 @@ type News = {
   author_id: string;
   slug: string;
   published: boolean;
+  content_type: 'guide' | 'educational';
 };
 
 export const NewsManager = () => {
@@ -31,7 +32,12 @@ export const NewsManager = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      
+      // Transform the data to include content_type
+      return data.map(item => ({
+        ...item,
+        content_type: 'educational' as const
+      }));
     },
   });
 
@@ -161,7 +167,7 @@ export const NewsManager = () => {
             setIsAddingNews(false);
             setEditingNews(null);
           }}
-          type="news"
+          type="educational"
           isEditing={!!editingNews}
           defaultValues={editingNews || undefined}
         />
