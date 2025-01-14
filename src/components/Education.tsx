@@ -6,34 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { ProgressHeader } from "./education/ProgressHeader";
 import { TopicCard } from "./education/TopicCard";
+import { QuizSection } from "./education/QuizSection";
 import { Button } from "./ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./ui/card";
-
-type CardType = "guide_collection" | "quiz_section" | "progress_tracker" | "featured_content" | "ai_highlight" | "news_collection";
-
-type ContentCard = {
-  id: string;
-  title: string;
-  description: string | null;
-  card_type: CardType;
-  content_ids: string[];
-  display_order: number;
-  is_active: boolean;
-  style_variant: string;
-  guides: any[];
-  header_title: string | null;
-  header_description: string | null;
-};
-
-type Guide = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  read_time: string;
-  difficulty: string;
-  points: number;
-};
 
 const iconMap = {
   'Crypto Basics': BookOpen,
@@ -75,7 +50,7 @@ export const Education = () => {
         .eq('is_active', true)
         .order('display_order');
       if (error) throw error;
-      return data as ContentCard[];
+      return data;
     },
   });
 
@@ -87,7 +62,29 @@ export const Education = () => {
         .select('*')
         .order('created_at');
       if (error) throw error;
-      return data as Guide[];
+      return data;
+    },
+  });
+
+  const { data: educationalContent } = useQuery({
+    queryKey: ['educationalContent'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('educational_content')
+        .select(`
+          *,
+          quizzes (
+            id,
+            title,
+            description,
+            points
+          )
+        `)
+        .eq('published', true)
+        .eq('content_type', 'educational')
+        .order('created_at');
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -115,9 +112,9 @@ export const Education = () => {
     checkAuth();
   }, []);
 
-  const renderGuideCollection = (card: ContentCard) => {
+  const renderGuideCollection = (card: any) => {
     const cardGuides = guides?.filter(guide => 
-      card.guides?.some(g => g.id === guide.id)
+      card.guides?.some((g: any) => g.id === guide.id)
     ) || [];
 
     return (
@@ -140,7 +137,35 @@ export const Education = () => {
     );
   };
 
-  const renderQuizSection = (card: ContentCard) => (
+  const renderEducationalContent = (card: any) => {
+    const content = educationalContent?.filter(content => 
+      card.content_ids?.includes(content.id)
+    ) || [];
+
+    return (
+      <div key={card.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {content.map((item) => (
+          <div key={item.id} className="space-y-4">
+            <TopicCard
+              id={item.id}
+              title={item.title}
+              description={item.content}
+              icon={iconMap[item.category as keyof typeof iconMap] || BookOpen}
+              link={`/education/content/${item.id}`}
+              difficulty="Intermediate"
+              points={item.quizzes?.[0]?.points || 0}
+              isCompleted={userProgress?.completed_content.includes(item.id) || false}
+            />
+            {item.has_quiz && (
+              <QuizSection contentId={item.id} quizId={item.quiz_id} />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderQuizSection = (card: any) => (
     <Card key={card.id} className="bg-primary/5">
       <CardHeader>
         <CardTitle>{card.header_title || card.title}</CardTitle>
@@ -152,10 +177,12 @@ export const Education = () => {
     </Card>
   );
 
-  const renderCard = (card: ContentCard) => {
+  const renderCard = (card: any) => {
     switch (card.card_type) {
       case 'guide_collection':
         return renderGuideCollection(card);
+      case 'educational_content':
+        return renderEducationalContent(card);
       case 'quiz_section':
         return renderQuizSection(card);
       default:

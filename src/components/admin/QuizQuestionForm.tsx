@@ -3,6 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -13,8 +16,8 @@ import {
 
 type QuizQuestionFormProps = {
   quizId: string;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
+  onComplete: () => void;
   defaultValues?: {
     question?: string;
     options?: string[];
@@ -28,12 +31,48 @@ type QuizQuestionFormProps = {
 
 export const QuizQuestionForm = ({
   quizId,
-  onSubmit,
   onClose,
+  onComplete,
   defaultValues,
   isEditing = false,
 }: QuizQuestionFormProps) => {
   const [options, setOptions] = useState<string[]>(defaultValues?.options || ['', '', '', '']);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const createQuestionMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const { error } = await supabase
+        .from('quiz_questions')
+        .insert([{
+          quiz_id: quizId,
+          question: formData.get('question'),
+          options: options,
+          correct_answer: formData.get('correct_answer'),
+          explanation: formData.get('explanation'),
+          feedback_correct: formData.get('feedback_correct'),
+          feedback_incorrect: formData.get('feedback_incorrect'),
+        }]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quiz-questions', quizId] });
+      onComplete();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create question. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    createQuestionMutation.mutate(formData);
+  };
 
   const handleAddOption = () => {
     setOptions([...options, '']);
@@ -50,7 +89,7 @@ export const QuizQuestionForm = ({
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
+    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">
           {isEditing ? "Edit" : "Add"} Question
