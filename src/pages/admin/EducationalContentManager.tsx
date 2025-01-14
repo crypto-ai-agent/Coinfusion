@@ -20,6 +20,7 @@ type Content = {
   has_quiz?: boolean;
   created_at?: string;
   updated_at?: string;
+  quiz_title?: string;
 };
 
 export const EducationalContentManager = () => {
@@ -36,11 +37,20 @@ export const EducationalContentManager = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('educational_content')
-        .select('*')
+        .select(`
+          *,
+          quizzes (
+            title
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Content[];
+      
+      return data.map((item: any) => ({
+        ...item,
+        quiz_title: item.quizzes?.[0]?.title
+      }));
     },
   });
 

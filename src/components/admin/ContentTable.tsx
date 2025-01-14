@@ -1,16 +1,10 @@
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { QuizSelector } from "./QuizSelector";
 import { QuizCreationFlow } from "./QuizCreationFlow";
+import { QuizCell } from "./table/QuizCell";
+import { ActionCell } from "./table/ActionCell";
 
 interface ContentTableProps {
   items: Array<{
@@ -21,14 +15,21 @@ interface ContentTableProps {
     published: boolean;
     has_quiz?: boolean;
     quiz_id?: string | null;
+    quiz_title?: string;
   }>;
   onEdit: (item: any) => void;
   onDelete: (id: string) => void;
   onAddQuiz?: (item: any) => void;
-  onCreateNewQuiz?: (item: any) => void; // Added this prop
+  onCreateNewQuiz?: (item: any) => void;
 }
 
-export const ContentTable = ({ items, onEdit, onDelete, onAddQuiz }: ContentTableProps) => {
+export const ContentTable = ({ 
+  items, 
+  onEdit, 
+  onDelete, 
+  onAddQuiz,
+  onCreateNewQuiz 
+}: ContentTableProps) => {
   const [showQuizSelector, setShowQuizSelector] = useState(false);
   const [showQuizCreation, setShowQuizCreation] = useState(false);
   const [selectedContent, setSelectedContent] = useState<any>(null);
@@ -63,39 +64,20 @@ export const ContentTable = ({ items, onEdit, onDelete, onAddQuiz }: ContentTabl
               <TableCell>{item.category}</TableCell>
               <TableCell>{item.content_type}</TableCell>
               <TableCell>
-                {item.content_type === 'educational' && (
-                  <div className="space-x-2">
-                    {item.has_quiz ? (
-                      <Button variant="outline" onClick={() => handleQuizAction(item)}>
-                        Change Quiz
-                      </Button>
-                    ) : (
-                      <div className="space-x-2">
-                        <Button variant="outline" onClick={() => handleQuizAction(item)}>
-                          Add Existing Quiz
-                        </Button>
-                        <Button variant="outline" onClick={() => handleCreateQuiz(item)}>
-                          Create New Quiz
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <QuizCell
+                  contentType={item.content_type}
+                  hasQuiz={item.has_quiz || false}
+                  quizTitle={item.quiz_title}
+                  onAddQuiz={() => handleQuizAction(item)}
+                  onCreateQuiz={() => handleCreateQuiz(item)}
+                />
               </TableCell>
               <TableCell>{item.published ? 'Published' : 'Draft'}</TableCell>
               <TableCell>
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => onEdit(item)}>
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onDelete(item.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
+                <ActionCell
+                  onEdit={() => onEdit(item)}
+                  onDelete={() => onDelete(item.id)}
+                />
               </TableCell>
             </TableRow>
           ))}
