@@ -1,24 +1,15 @@
-import { BookOpen, Shield, TrendingUp, Lightbulb } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { ProgressHeader } from "./education/ProgressHeader";
-import { TopicCard } from "./education/TopicCard";
-import { QuizSection } from "./education/QuizSection";
-import { Button } from "./ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./ui/card";
-
-const iconMap = {
-  'Crypto Basics': BookOpen,
-  'Security': Shield,
-  'Investment': TrendingUp,
-  'Advanced Topics': Lightbulb,
-};
+import { AuthPrompt } from "./education/AuthPrompt";
+import { GuideCollection } from "./education/GuideCollection";
+import { EducationalContentSection } from "./education/EducationalContentSection";
+import { QuizCard } from "./education/QuizCard";
 
 export const Education = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProgress, setUserProgress] = useState<{
@@ -112,79 +103,35 @@ export const Education = () => {
     checkAuth();
   }, []);
 
-  const renderGuideCollection = (card: any) => {
-    const cardGuides = guides?.filter(guide => 
-      card.guides?.some((g: any) => g.id === guide.id)
-    ) || [];
-
-    return (
-      <div key={card.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {cardGuides.map((guide) => (
-          <TopicCard
-            key={guide.id}
-            id={guide.id}
-            title={guide.title}
-            description={guide.description}
-            icon={iconMap[guide.category as keyof typeof iconMap] || BookOpen}
-            link={`/education/${guide.category.toLowerCase().replace(' ', '-')}/${guide.id}`}
-            difficulty={guide.difficulty}
-            points={guide.points}
-            readTime={guide.read_time}
-            isCompleted={userProgress?.completed_content.includes(guide.id) || false}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const renderEducationalContent = (card: any) => {
-    const content = educationalContent?.filter(content => 
-      card.content_ids?.includes(content.id)
-    ) || [];
-
-    return (
-      <div key={card.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {content.map((item) => (
-          <div key={item.id} className="space-y-4">
-            <TopicCard
-              id={item.id}
-              title={item.title}
-              description={item.content}
-              icon={iconMap[item.category as keyof typeof iconMap] || BookOpen}
-              link={`/education/content/${item.id}`}
-              difficulty="Intermediate"
-              points={item.quizzes?.[0]?.points || 0}
-              isCompleted={userProgress?.completed_content.includes(item.id) || false}
-            />
-            {item.has_quiz && (
-              <QuizSection contentId={item.id} quizId={item.quiz_id} />
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderQuizSection = (card: any) => (
-    <Card key={card.id} className="bg-primary/5">
-      <CardHeader>
-        <CardTitle>{card.header_title || card.title}</CardTitle>
-        <CardDescription>{card.header_description || card.description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button onClick={() => navigate("/quiz")}>Start Quiz</Button>
-      </CardContent>
-    </Card>
-  );
-
   const renderCard = (card: any) => {
     switch (card.card_type) {
       case 'guide_collection':
-        return renderGuideCollection(card);
+        const cardGuides = guides?.filter(guide => 
+          card.guides?.some((g: any) => g.id === guide.id)
+        ) || [];
+        return (
+          <GuideCollection 
+            guides={cardGuides} 
+            completedContent={userProgress?.completed_content || []} 
+          />
+        );
       case 'educational_content':
-        return renderEducationalContent(card);
+        const content = educationalContent?.filter(content => 
+          card.content_ids?.includes(content.id)
+        ) || [];
+        return (
+          <EducationalContentSection 
+            content={content} 
+            completedContent={userProgress?.completed_content || []} 
+          />
+        );
       case 'quiz_section':
-        return renderQuizSection(card);
+        return (
+          <QuizCard 
+            title={card.header_title || card.title}
+            description={card.header_description || card.description}
+          />
+        );
       default:
         return null;
     }
@@ -200,17 +147,7 @@ export const Education = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
             Start your journey into cryptocurrency with our comprehensive guides
           </p>
-          {!isAuthenticated && (
-            <div className="bg-primary/5 p-6 rounded-lg mb-8">
-              <h3 className="text-lg font-semibold mb-2">Track Your Progress</h3>
-              <p className="text-gray-600 mb-4">
-                Sign in to track your progress, earn points, and unlock achievements!
-              </p>
-              <Button onClick={() => navigate("/auth")} variant="default">
-                Sign In to Get Started
-              </Button>
-            </div>
-          )}
+          {!isAuthenticated && <AuthPrompt />}
           {isAuthenticated && userProgress && (
             <ProgressHeader
               totalPoints={userProgress.total_points}
