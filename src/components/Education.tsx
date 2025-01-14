@@ -73,7 +73,7 @@ export const Education = () => {
         .from('educational_content')
         .select(`
           *,
-          quizzes (
+          quizzes!quizzes_content_id_fkey (
             id,
             title,
             description,
