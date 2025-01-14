@@ -22,12 +22,12 @@ export const QuizQuestionForm = ({ quizId, onClose }: QuizQuestionFormProps) => 
     mutationFn: async (formData: FormData) => {
       const questionData = {
         quiz_id: quizId,
-        question: formData.get('question'),
+        question: formData.get('question')?.toString() || '',
         options: options.filter(opt => opt.trim() !== ''),
-        correct_answer: formData.get('correct_answer'),
-        explanation: formData.get('explanation'),
-        feedback_correct: formData.get('feedback_correct'),
-        feedback_incorrect: formData.get('feedback_incorrect'),
+        correct_answer: formData.get('correct_answer')?.toString() || '',
+        explanation: formData.get('explanation')?.toString() || '',
+        feedback_correct: formData.get('feedback_correct')?.toString() || '',
+        feedback_incorrect: formData.get('feedback_incorrect')?.toString() || '',
       };
 
       const { error } = await supabase
