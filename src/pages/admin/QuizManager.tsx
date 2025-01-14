@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { QuizForm } from "@/components/admin/QuizForm";
 import { QuizQuestionForm } from "@/components/admin/quiz/QuizQuestionForm";
 import { QuizQuestionList } from "@/components/admin/quiz/QuizQuestionList";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { QuizList } from "@/components/admin/quiz/QuizList";
+import { QuizHeader } from "@/components/admin/quiz/QuizHeader";
+import { EditQuizDialog } from "@/components/admin/quiz/EditQuizDialog";
+import { Quiz } from "@/types/content";
 
 export const QuizManager = () => {
   const [isAddingQuiz, setIsAddingQuiz] = useState(false);
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
-  const [editingQuiz, setEditingQuiz] = useState<string | null>(null);
+  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -111,7 +113,6 @@ export const QuizManager = () => {
   };
 
   const handleEditQuestion = (questionId: string) => {
-    // This will be implemented in the next iteration
     toast({
       title: "Coming Soon",
       description: "Question editing will be available in the next update",
@@ -124,35 +125,16 @@ export const QuizManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          {selectedQuiz && (
-            <Button 
-              variant="ghost" 
-              onClick={handleBackToQuizzes}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Quizzes
-            </Button>
-          )}
-          <h2 className="text-xl font-semibold">
-            {selectedQuiz ? 'Quiz Questions' : 'Quiz Management'}
-          </h2>
-        </div>
-        {!selectedQuiz && (
-          <Button onClick={() => setIsAddingQuiz(true)}>
-            Create New Quiz
-          </Button>
-        )}
-      </div>
+      <QuizHeader
+        title={selectedQuiz ? 'Quiz Questions' : 'Quiz Management'}
+        showBackButton={!!selectedQuiz}
+        onBack={handleBackToQuizzes}
+        onAddNew={!selectedQuiz ? () => setIsAddingQuiz(true) : undefined}
+      />
 
       {isAddingQuiz && categories && (
         <Card>
-          <CardHeader>
-            <CardTitle>Create New Quiz</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <QuizForm
               contentId={null}
               onComplete={(id) => {
@@ -173,15 +155,7 @@ export const QuizManager = () => {
 
       {selectedQuiz && (
         <Card>
-          <CardHeader>
-            <CardTitle>
-              {quizzes?.find(q => q.id === selectedQuiz)?.title}
-            </CardTitle>
-            <CardDescription>
-              Manage questions for this quiz
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div className="flex justify-end">
               <Button onClick={() => setIsAddingQuestion(true)}>
                 Add Question
@@ -192,6 +166,10 @@ export const QuizManager = () => {
               <QuizQuestionForm
                 quizId={selectedQuiz}
                 onClose={() => setIsAddingQuestion(false)}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  // Handle question submission logic here
+                }}
               />
             )}
 
@@ -205,52 +183,22 @@ export const QuizManager = () => {
       )}
 
       {!selectedQuiz && quizzes && quizzes.length > 0 && (
-        <div className="grid gap-4">
-          {quizzes.map((quiz) => (
-            <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{quiz.title}</CardTitle>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setEditingQuiz(quiz.id)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDeleteQuiz(quiz.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-                <CardDescription>{quiz.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      Category: {quiz.quiz_categories?.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Difficulty: {quiz.difficulty_level}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Points: {quiz.points}
-                    </p>
-                  </div>
-                  <Button onClick={() => setSelectedQuiz(quiz.id)}>
-                    Manage Questions
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <QuizList
+          quizzes={quizzes}
+          onSelect={setSelectedQuiz}
+          onEdit={setEditingQuiz}
+          onDelete={handleDeleteQuiz}
+        />
       )}
+
+      <EditQuizDialog
+        quiz={editingQuiz}
+        isOpen={!!editingQuiz}
+        onClose={() => setEditingQuiz(null)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+        }}
+      />
     </div>
   );
 };
