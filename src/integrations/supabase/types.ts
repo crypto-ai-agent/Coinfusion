@@ -70,6 +70,7 @@ export type Database = {
           has_quiz: boolean | null
           id: string
           published: boolean | null
+          quiz_id: string | null
           slug: string
           title: string
           updated_at: string | null
@@ -83,6 +84,7 @@ export type Database = {
           has_quiz?: boolean | null
           id?: string
           published?: boolean | null
+          quiz_id?: string | null
           slug: string
           title: string
           updated_at?: string | null
@@ -96,11 +98,20 @@ export type Database = {
           has_quiz?: boolean | null
           id?: string
           published?: boolean | null
+          quiz_id?: string | null
           slug?: string
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "educational_content_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       feature_requests: {
         Row: {
