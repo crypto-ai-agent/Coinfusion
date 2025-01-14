@@ -11,10 +11,14 @@ export type QuizFormProps = {
   contentId?: string;
   onComplete: (id: string) => void;
   onCancel: () => void;
+  categories: Array<{
+    id: string;
+    name: string;
+    description?: string;
+  }>;
 };
 
-export const QuizForm = ({ contentId, onComplete, onCancel }: QuizFormProps) => {
-  const [questions, setQuestions] = useState([{ question: '', options: ['', ''], correctAnswer: '' }]);
+export const QuizForm = ({ contentId, onComplete, onCancel, categories }: QuizFormProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -29,12 +33,12 @@ export const QuizForm = ({ contentId, onComplete, onCancel }: QuizFormProps) => 
           quiz_type: 'content_linked',
           points: parseInt(formData.get('points') as string),
           difficulty_level: formData.get('difficulty_level') as string,
+          category_id: formData.get('category_id') as string,
         }])
         .select()
         .single();
 
       if (quizError) throw quizError;
-
       return quiz;
     },
     onSuccess: (quiz) => {
@@ -78,6 +82,22 @@ export const QuizForm = ({ contentId, onComplete, onCancel }: QuizFormProps) => 
           name="description"
           required
         />
+      </div>
+
+      <div>
+        <Label htmlFor="category_id">Category</Label>
+        <select
+          id="category_id"
+          name="category_id"
+          className="w-full border rounded-md p-2"
+          required
+        >
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

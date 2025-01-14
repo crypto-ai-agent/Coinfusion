@@ -15,6 +15,8 @@ type News = {
   slug: string;
   published: boolean;
   content_type: 'guide' | 'educational';
+  created_at?: string;
+  updated_at?: string;
 };
 
 export const NewsManager = () => {
@@ -24,7 +26,7 @@ export const NewsManager = () => {
   const queryClient = useQueryClient();
 
   const { data: news, isLoading } = useQuery({
-    queryKey: ['newsArticles'],
+    queryKey: ['news'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('news_articles')
@@ -33,7 +35,6 @@ export const NewsManager = () => {
 
       if (error) throw error;
       
-      // Transform the data to include content_type
       return data.map(item => ({
         ...item,
         content_type: 'educational' as const
@@ -42,50 +43,54 @@ export const NewsManager = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (newArticle: Omit<News, 'id' | 'author_id'>) => {
+    mutationFn: async (newNews: Omit<News, 'id' | 'author_id'>) => {
       const { data: { session } } = await supabase.auth.getSession();
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('news_articles')
-        .insert([{ ...newArticle, author_id: session?.user.id }]);
+        .insert([{ ...newNews, author_id: session?.user.id }])
+        .select()
+        .single();
+
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['newsArticles'] });
+      queryClient.invalidateQueries({ queryKey: ['news'] });
       toast({
         title: "Success",
-        description: "Article created successfully.",
+        description: "News article created successfully.",
       });
       setIsAddingNews(false);
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create article. Please try again.",
+        description: "Failed to create news article. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (updatedArticle: News) => {
+    mutationFn: async (updatedNews: News) => {
       const { error } = await supabase
         .from('news_articles')
-        .update(updatedArticle)
-        .eq('id', updatedArticle.id);
+        .update({ ...updatedNews, content_type: 'educational' })
+        .eq('id', updatedNews.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['newsArticles'] });
+      queryClient.invalidateQueries({ queryKey: ['news'] });
       toast({
         title: "Success",
-        description: "Article updated successfully.",
+        description: "News article updated successfully.",
       });
       setEditingNews(null);
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to update article. Please try again.",
+        description: "Failed to update news article. Please try again.",
         variant: "destructive",
       });
     },
@@ -100,16 +105,16 @@ export const NewsManager = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['newsArticles'] });
+      queryClient.invalidateQueries({ queryKey: ['news'] });
       toast({
         title: "Success",
-        description: "Article deleted successfully.",
+        description: "News article deleted successfully.",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to delete article. Please try again.",
+        description: "Failed to delete news article. Please try again.",
         variant: "destructive",
       });
     },
@@ -119,18 +124,19 @@ export const NewsManager = () => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const articleData = {
+    const newsData = {
       title: formData.get('title') as string,
       content: formData.get('content') as string,
       category: formData.get('category') as string,
       slug: formData.get('slug') as string,
       published: formData.get('published') === 'true',
+      content_type: 'educational' as const,
     };
 
     if (editingNews) {
-      updateMutation.mutate({ ...articleData, id: editingNews.id, author_id: editingNews.author_id });
+      updateMutation.mutate({ ...newsData, id: editingNews.id, author_id: editingNews.author_id });
     } else {
-      createMutation.mutate(articleData);
+      createMutation.mutate(newsData);
     }
   };
 
@@ -140,7 +146,7 @@ export const NewsManager = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this article?')) {
+    if (window.confirm('Are you sure you want to delete this news article?')) {
       deleteMutation.mutate(id);
     }
   };
@@ -152,10 +158,10 @@ export const NewsManager = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">News Articles</h2>
+        <h2 className="text-xl font-semibold">News Management</h2>
         {!editingNews && (
           <Button onClick={() => setIsAddingNews(true)}>
-            Add New Article
+            Add News Article
           </Button>
         )}
       </div>

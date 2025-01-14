@@ -48,8 +48,18 @@ export const QuizManager = () => {
       const { data, error } = await supabase
         .from('quizzes')
         .select(`
-          *,
+          id,
+          title,
+          description,
+          content_id,
+          quiz_type,
+          points,
+          difficulty_level,
+          created_at,
+          updated_at,
+          category_id,
           quiz_categories (
+            id,
             name
           )
         `)

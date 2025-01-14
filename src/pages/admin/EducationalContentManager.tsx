@@ -17,7 +17,9 @@ type Content = {
   slug: string;
   published: boolean;
   content_type: 'guide' | 'educational';
-  has_quiz: boolean;
+  has_quiz?: boolean;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export const EducationalContentManager = () => {
@@ -51,7 +53,7 @@ export const EducationalContentManager = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Content;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
@@ -61,9 +63,8 @@ export const EducationalContentManager = () => {
       });
       setIsAddingContent(false);
 
-      // If it's educational content and user wants to add a quiz
       if (data.content_type === 'educational' && data.has_quiz) {
-        setQuizContent(data);
+        setQuizContent(data as Content);
       }
     },
     onError: () => {
@@ -171,7 +172,6 @@ export const EducationalContentManager = () => {
 
   const handleQuizComplete = async () => {
     if (quizContent) {
-      // Update the content to mark it as having a quiz
       const { error } = await supabase
         .from('educational_content')
         .update({ has_quiz: true })
