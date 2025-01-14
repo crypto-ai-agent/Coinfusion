@@ -6,15 +6,8 @@ import { Plus, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-type QuizQuestionFormProps = {
+export type QuizQuestionFormProps = {
   quizId: string;
   onClose: () => void;
   onComplete: () => void;
@@ -42,27 +35,34 @@ export const QuizQuestionForm = ({
 
   const createQuestionMutation = useMutation({
     mutationFn: async (formData: FormData) => {
+      const questionData = {
+        quiz_id: quizId,
+        question: formData.get('question')?.toString() || '',
+        options: options.filter(opt => opt.trim() !== ''),
+        correct_answer: formData.get('correct_answer')?.toString() || '',
+        explanation: formData.get('explanation')?.toString() || '',
+        feedback_correct: formData.get('feedback_correct')?.toString() || '',
+        feedback_incorrect: formData.get('feedback_incorrect')?.toString() || '',
+      };
+
       const { error } = await supabase
         .from('quiz_questions')
-        .insert([{
-          quiz_id: quizId,
-          question: formData.get('question'),
-          options: options,
-          correct_answer: formData.get('correct_answer'),
-          explanation: formData.get('explanation'),
-          feedback_correct: formData.get('feedback_correct'),
-          feedback_incorrect: formData.get('feedback_incorrect'),
-        }]);
+        .insert([questionData]);
+
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quiz-questions', quizId] });
+      toast({
+        title: "Success",
+        description: "Question added successfully",
+      });
       onComplete();
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create question. Please try again.",
+        description: "Failed to add question",
         variant: "destructive",
       });
     },
@@ -75,43 +75,42 @@ export const QuizQuestionForm = ({
   };
 
   const handleAddOption = () => {
-    setOptions([...options, '']);
+    if (options.length < 6) {
+      setOptions([...options, '']);
+    }
   };
 
   const handleRemoveOption = (index: number) => {
-    setOptions(options.filter((_, i) => i !== index));
-  };
-
-  const handleOptionChange = (index: number, value: string) => {
-    const newOptions = [...options];
-    newOptions[index] = value;
-    setOptions(newOptions);
+    if (options.length > 2) {
+      setOptions(options.filter((_, i) => i !== index));
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">
-          {isEditing ? "Edit" : "Add"} Question
-        </h3>
-        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="question" className="block text-sm font-medium text-gray-700">Question</label>
+        <Textarea
+          id="question"
+          name="question"
+          required
+          placeholder="Enter your question"
+          defaultValue={defaultValues?.question}
+        />
       </div>
 
-      <Textarea
-        name="question"
-        placeholder="Question"
-        defaultValue={defaultValues?.question}
-        required
-      />
-
       <div className="space-y-2">
-        <label className="text-sm font-medium">Options</label>
+        <label className="block text-sm font-medium text-gray-700">Answer Options</label>
         {options.map((option, index) => (
           <div key={index} className="flex gap-2">
             <Input
-              name={`option_${index}`}
               value={option}
-              onChange={(e) => handleOptionChange(index, e.target.value)}
+              onChange={(e) => {
+                const newOptions = [...options];
+                newOptions[index] = e.target.value;
+                setOptions(newOptions);
+              }}
+              name={`option_${index}`}
               placeholder={`Option ${index + 1}`}
               required
             />
@@ -140,40 +139,61 @@ export const QuizQuestionForm = ({
         )}
       </div>
 
-      <Select name="correct_answer" defaultValue={defaultValues?.correct_answer}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select correct answer" />
-        </SelectTrigger>
-        <SelectContent>
+      <div>
+        <label htmlFor="correct_answer" className="block text-sm font-medium text-gray-700">Correct Answer</label>
+        <select
+          id="correct_answer"
+          name="correct_answer"
+          className="w-full border rounded-md p-2"
+          required
+          defaultValue={defaultValues?.correct_answer}
+        >
           {options.map((option, index) => (
-            <SelectItem key={index} value={option}>
+            <option key={index} value={option}>
               {option || `Option ${index + 1}`}
-            </SelectItem>
+            </option>
           ))}
-        </SelectContent>
-      </Select>
+        </select>
+      </div>
 
-      <Textarea
-        name="explanation"
-        placeholder="Explanation"
-        defaultValue={defaultValues?.explanation}
-      />
+      <div>
+        <label htmlFor="explanation" className="block text-sm font-medium text-gray-700">Explanation</label>
+        <Textarea
+          id="explanation"
+          name="explanation"
+          placeholder="Explain why this is the correct answer"
+          defaultValue={defaultValues?.explanation}
+        />
+      </div>
 
-      <Textarea
-        name="feedback_correct"
-        placeholder="Feedback for correct answer"
-        defaultValue={defaultValues?.feedback_correct}
-      />
+      <div>
+        <label htmlFor="feedback_correct" className="block text-sm font-medium text-gray-700">Feedback for Correct Answer</label>
+        <Textarea
+          id="feedback_correct"
+          name="feedback_correct"
+          placeholder="Feedback when user answers correctly"
+          defaultValue={defaultValues?.feedback_correct}
+        />
+      </div>
 
-      <Textarea
-        name="feedback_incorrect"
-        placeholder="Feedback for incorrect answer"
-        defaultValue={defaultValues?.feedback_incorrect}
-      />
+      <div>
+        <label htmlFor="feedback_incorrect" className="block text-sm font-medium text-gray-700">Feedback for Incorrect Answer</label>
+        <Textarea
+          id="feedback_incorrect"
+          name="feedback_incorrect"
+          placeholder="Feedback when user answers incorrectly"
+          defaultValue={defaultValues?.feedback_incorrect}
+        />
+      </div>
 
-      <Button type="submit">
-        {isEditing ? "Update" : "Add"} Question
-      </Button>
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit">
+          {isEditing ? "Update" : "Add"} Question
+        </Button>
+      </div>
     </form>
   );
 };

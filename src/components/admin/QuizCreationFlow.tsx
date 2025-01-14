@@ -39,6 +39,12 @@ export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreati
     setStep('questions');
   };
 
+  const handleQuestionComplete = () => {
+    if (quizId) {
+      onComplete(quizId);
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={() => onCancel()}>
       <DialogContent className="sm:max-w-[600px]">
@@ -64,12 +70,9 @@ export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreati
           <div className="space-y-4">
             <QuizQuestionForm
               quizId={quizId || ''}
-              onSubmit={() => {}}
-              onClose={() => {}}
+              onComplete={handleQuestionComplete}
+              onClose={() => onComplete(quizId || '')}
             />
-            <div className="flex justify-end space-x-2">
-              <Button onClick={() => onComplete(quizId || '')}>Finish</Button>
-            </div>
           </div>
         )}
       </DialogContent>
