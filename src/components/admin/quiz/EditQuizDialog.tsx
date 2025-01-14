@@ -29,10 +29,10 @@ export const EditQuizDialog = ({ quiz, isOpen, onClose, onSuccess }: EditQuizDia
     const { error } = await supabase
       .from('quizzes')
       .update({
-        title: formData.get('title'),
-        description: formData.get('description'),
-        points: parseInt(formData.get('points') as string),
-        difficulty_level: formData.get('difficulty_level'),
+        title: String(formData.get('title')),
+        description: String(formData.get('description')),
+        points: parseInt(String(formData.get('points'))),
+        difficulty_level: String(formData.get('difficulty_level')),
       })
       .eq('id', quiz.id);
 
