@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowRight } from "lucide-react";
 
 interface TopicCardProps {
+  id?: string;
   title: string;
   description: string;
   icon: LucideIcon;
@@ -12,6 +13,7 @@ interface TopicCardProps {
   difficulty: string;
   points: number;
   isCompleted: boolean;
+  readTime?: string;
 }
 
 export const TopicCard = ({
@@ -22,6 +24,7 @@ export const TopicCard = ({
   difficulty,
   points,
   isCompleted,
+  readTime,
 }: TopicCardProps) => {
   return (
     <Card className={`hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
@@ -39,13 +42,18 @@ export const TopicCard = ({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Link
-          to={link}
-          className="text-primary hover:text-primary/80 font-medium inline-flex items-center group"
-        >
-          {isCompleted ? 'Review again' : 'Start learning'}
-          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-        </Link>
+        <div className="flex justify-between items-center">
+          <Link
+            to={link}
+            className="text-primary hover:text-primary/80 font-medium inline-flex items-center group"
+          >
+            {isCompleted ? 'Review again' : 'Start learning'}
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+          {readTime && (
+            <span className="text-sm text-muted-foreground">{readTime}</span>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

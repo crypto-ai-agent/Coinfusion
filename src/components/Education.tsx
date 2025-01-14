@@ -20,42 +20,27 @@ type ContentCard = {
   display_order: number;
   is_active: boolean;
   style_variant: string;
+  guides: any[];
+  header_title: string | null;
+  header_description: string | null;
 };
 
-const defaultTopics = [
-  {
-    title: "Crypto Basics",
-    description: "Learn the fundamentals of cryptocurrency and blockchain technology",
-    icon: BookOpen,
-    link: "/education/crypto-basics",
-    difficulty: "Beginner",
-    points: 100
-  },
-  {
-    title: "Security",
-    description: "Understand how to keep your crypto investments safe",
-    icon: Shield,
-    link: "/education/security",
-    difficulty: "Intermediate",
-    points: 150
-  },
-  {
-    title: "Investment",
-    description: "Master the strategies for successful crypto investing",
-    icon: TrendingUp,
-    link: "/education/investment",
-    difficulty: "Advanced",
-    points: 200
-  },
-  {
-    title: "Advanced Topics",
-    description: "Dive deep into DeFi, NFTs, and emerging trends",
-    icon: Lightbulb,
-    link: "/education/advanced",
-    difficulty: "Expert",
-    points: 250
-  },
-];
+type Guide = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  read_time: string;
+  difficulty: string;
+  points: number;
+};
+
+const iconMap = {
+  'Crypto Basics': BookOpen,
+  'Security': Shield,
+  'Investment': TrendingUp,
+  'Advanced Topics': Lightbulb,
+};
 
 export const Education = () => {
   const navigate = useNavigate();
@@ -86,20 +71,23 @@ export const Education = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('content_cards')
-        .select(`
-          id,
-          title,
-          description,
-          card_type,
-          content_ids,
-          display_order,
-          is_active,
-          style_variant
-        `)
+        .select('*')
         .eq('is_active', true)
         .order('display_order');
       if (error) throw error;
-      return data;
+      return data as ContentCard[];
+    },
+  });
+
+  const { data: guides } = useQuery({
+    queryKey: ['guides'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('guides')
+        .select('*')
+        .order('created_at');
+      if (error) throw error;
+      return data as Guide[];
     },
   });
 
@@ -120,67 +108,46 @@ export const Education = () => {
           return;
         }
 
-        if (!progressData) {
-          const { data: newProgress, error: insertError } = await supabase
-            .from('user_progress')
-            .insert([{ 
-              user_id: session.user.id,
-              total_points: 0,
-              completed_content: [],
-              current_streak: 0,
-              last_activity: new Date().toISOString()
-            }])
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error('Error creating user progress:', insertError);
-            return;
-          }
-
-          setUserProgress(newProgress);
-        } else {
-          setUserProgress(progressData);
-        }
+        setUserProgress(progressData);
       }
     };
 
     checkAuth();
   }, []);
 
-  const renderGuideCollection = (card: ContentCard) => (
-    <div key={card.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      {defaultTopics.map((topic) => (
-        <TopicCard
-          key={topic.title}
-          {...topic}
-          isCompleted={userProgress?.completed_content.includes(topic.title) || false}
-        />
-      ))}
-    </div>
-  );
+  const renderGuideCollection = (card: ContentCard) => {
+    const cardGuides = guides?.filter(guide => 
+      card.guides?.some(g => g.id === guide.id)
+    ) || [];
+
+    return (
+      <div key={card.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {cardGuides.map((guide) => (
+          <TopicCard
+            key={guide.id}
+            id={guide.id}
+            title={guide.title}
+            description={guide.description}
+            icon={iconMap[guide.category as keyof typeof iconMap] || BookOpen}
+            link={`/education/${guide.category.toLowerCase().replace(' ', '-')}/${guide.id}`}
+            difficulty={guide.difficulty}
+            points={guide.points}
+            readTime={guide.read_time}
+            isCompleted={userProgress?.completed_content.includes(guide.id) || false}
+          />
+        ))}
+      </div>
+    );
+  };
 
   const renderQuizSection = (card: ContentCard) => (
     <Card key={card.id} className="bg-primary/5">
       <CardHeader>
-        <CardTitle>{card.title}</CardTitle>
-        <CardDescription>{card.description}</CardDescription>
+        <CardTitle>{card.header_title || card.title}</CardTitle>
+        <CardDescription>{card.header_description || card.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <Button onClick={() => navigate("/quiz")}>Start Quiz</Button>
-      </CardContent>
-    </Card>
-  );
-
-  const renderFeaturedContent = (card: ContentCard) => (
-    <Card key={card.id}>
-      <CardHeader>
-        <CardTitle>{card.title}</CardTitle>
-        <CardDescription>{card.description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {/* Featured content will be implemented here */}
-        <div className="text-muted-foreground">Coming soon...</div>
       </CardContent>
     </Card>
   );
@@ -191,8 +158,6 @@ export const Education = () => {
         return renderGuideCollection(card);
       case 'quiz_section':
         return renderQuizSection(card);
-      case 'featured_content':
-        return renderFeaturedContent(card);
       default:
         return null;
     }
@@ -224,7 +189,7 @@ export const Education = () => {
               totalPoints={userProgress.total_points}
               currentStreak={userProgress.current_streak}
               completedCount={userProgress.completed_content.length}
-              totalCount={defaultTopics.length}
+              totalCount={guides?.length || 0}
             />
           )}
         </div>
