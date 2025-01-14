@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { QuizForm } from "@/components/admin/QuizForm";
@@ -7,13 +7,15 @@ import { QuizQuestionForm } from "@/components/admin/quiz/QuizQuestionForm";
 import { QuizQuestionList } from "@/components/admin/quiz/QuizQuestionList";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 
 export const QuizManager = () => {
   const [isAddingQuiz, setIsAddingQuiz] = useState(false);
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
+  const [editingQuiz, setEditingQuiz] = useState<string | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: categories } = useQuery({
     queryKey: ['quizCategories'],
@@ -48,6 +50,30 @@ export const QuizManager = () => {
     },
   });
 
+  const deleteQuizMutation = useMutation({
+    mutationFn: async (quizId: string) => {
+      const { error } = await supabase
+        .from('quizzes')
+        .delete()
+        .eq('id', quizId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+      toast({
+        title: "Success",
+        description: "Quiz deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete quiz",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteQuestion = async (questionId: string) => {
     if (!window.confirm('Are you sure you want to delete this question?')) return;
 
@@ -69,11 +95,27 @@ export const QuizManager = () => {
       title: "Success",
       description: "Question deleted successfully",
     });
+    queryClient.invalidateQueries({ queryKey: ['quiz-questions', selectedQuiz] });
+  };
+
+  const handleDeleteQuiz = (quizId: string) => {
+    if (window.confirm('Are you sure you want to delete this quiz? This will also delete all associated questions.')) {
+      deleteQuizMutation.mutate(quizId);
+    }
   };
 
   const handleBackToQuizzes = () => {
     setSelectedQuiz(null);
     setIsAddingQuestion(false);
+    setEditingQuiz(null);
+  };
+
+  const handleEditQuestion = (questionId: string) => {
+    // This will be implemented in the next iteration
+    toast({
+      title: "Coming Soon",
+      description: "Question editing will be available in the next update",
+    });
   };
 
   if (isLoading) {
@@ -117,6 +159,10 @@ export const QuizManager = () => {
                 setIsAddingQuiz(false);
                 setSelectedQuiz(id);
                 setIsAddingQuestion(true);
+                toast({
+                  title: "Success",
+                  description: "Quiz created successfully",
+                });
               }}
               onCancel={() => setIsAddingQuiz(false)}
               categories={categories}
@@ -151,7 +197,7 @@ export const QuizManager = () => {
 
             <QuizQuestionList
               quizId={selectedQuiz}
-              onEdit={() => {}} // To be implemented
+              onEdit={handleEditQuestion}
               onDelete={handleDeleteQuestion}
             />
           </CardContent>
@@ -163,7 +209,24 @@ export const QuizManager = () => {
           {quizzes.map((quiz) => (
             <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle className="text-lg">{quiz.title}</CardTitle>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{quiz.title}</CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setEditingQuiz(quiz.id)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDeleteQuiz(quiz.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
                 <CardDescription>{quiz.description}</CardDescription>
               </CardHeader>
               <CardContent>
