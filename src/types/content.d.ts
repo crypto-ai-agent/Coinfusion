@@ -28,4 +28,5 @@ export interface Quiz {
   quiz_categories?: {
     name: string;
   };
+  is_expert_quiz?: boolean;
 }

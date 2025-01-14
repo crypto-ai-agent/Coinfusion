@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button"; // Added missing import
 import { QuizForm } from "@/components/admin/QuizForm";
-import { QuizQuestionForm } from "@/components/admin/quiz/QuizQuestionForm";
+import { QuizQuestionForm } from "@/components/admin/QuizQuestionForm";
 import { QuizQuestionList } from "@/components/admin/quiz/QuizQuestionList";
 import { useToast } from "@/hooks/use-toast";
 import { QuizList } from "@/components/admin/quiz/QuizList";
@@ -166,9 +167,13 @@ export const QuizManager = () => {
               <QuizQuestionForm
                 quizId={selectedQuiz}
                 onClose={() => setIsAddingQuestion(false)}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  // Handle question submission logic here
+                onComplete={() => {
+                  setIsAddingQuestion(false);
+                  queryClient.invalidateQueries({ queryKey: ['quiz-questions', selectedQuiz] });
+                  toast({
+                    title: "Success",
+                    description: "Question added successfully",
+                  });
                 }}
               />
             )}
@@ -184,7 +189,7 @@ export const QuizManager = () => {
 
       {!selectedQuiz && quizzes && quizzes.length > 0 && (
         <QuizList
-          quizzes={quizzes}
+          quizzes={quizzes as Quiz[]}
           onSelect={setSelectedQuiz}
           onEdit={setEditingQuiz}
           onDelete={handleDeleteQuiz}
