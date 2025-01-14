@@ -1,34 +1,18 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { QuizForm } from "@/components/admin/QuizForm";
-import { QuizQuestionForm } from "@/components/admin/QuizQuestionForm";
-
-type Quiz = {
-  id: string;
-  title: string;
-  description: string;
-  content_id: string | null;
-  quiz_type: string;
-  points: number;
-  difficulty_level: string;
-  created_at: string;
-  updated_at: string;
-  category_id: string;
-  estimated_duration?: string;
-  quiz_categories: {
-    name: string;
-  };
-};
+import { QuizQuestionForm } from "@/components/admin/quiz/QuizQuestionForm";
+import { QuizQuestionList } from "@/components/admin/quiz/QuizQuestionList";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 export const QuizManager = () => {
   const [isAddingQuiz, setIsAddingQuiz] = useState(false);
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
-  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const { data: categories } = useQuery({
     queryKey: ['quizCategories'],
@@ -50,132 +34,36 @@ export const QuizManager = () => {
         .select(`
           *,
           quiz_categories (
-            id,
             name
           )
         `)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as Quiz[];
-    },
-  });
-
-  const createQuizMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const quizData = {
-        title: String(formData.get('title')),
-        description: String(formData.get('description')),
-        difficulty_level: String(formData.get('difficulty_level')),
-        category_id: String(formData.get('category_id')),
-        estimated_duration: `00:${formData.get('estimated_duration')}:00`,
-        points: Number(formData.get('points')),
-      };
-
-      const { data, error } = await supabase
-        .from('quizzes')
-        .insert([quizData])
-        .select()
-        .single();
-
-      if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
-      toast({
-        title: "Success",
-        description: "Quiz created successfully.",
-      });
-      setIsAddingQuiz(false);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create quiz. Please try again.",
-        variant: "destructive",
-      });
-    },
   });
 
-  const createQuestionMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const options = Array.from(formData.entries())
-        .filter(([key]) => key.startsWith('option_'))
-        .map(([, value]) => String(value));
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!window.confirm('Are you sure you want to delete this question?')) return;
 
-      const questionData = {
-        quiz_id: selectedQuiz?.id,
-        question: String(formData.get('question')),
-        options,
-        correct_answer: String(formData.get('correct_answer')),
-        explanation: String(formData.get('explanation')),
-        feedback_correct: String(formData.get('feedback_correct')),
-        feedback_incorrect: String(formData.get('feedback_incorrect')),
-      };
+    const { error } = await supabase
+      .from('quiz_questions')
+      .delete()
+      .eq('id', questionId);
 
-      const { error } = await supabase
-        .from('quiz_questions')
-        .insert([questionData]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
-      toast({
-        title: "Success",
-        description: "Question added successfully.",
-      });
-      setIsAddingQuestion(false);
-    },
-    onError: () => {
+    if (error) {
       toast({
         title: "Error",
-        description: "Failed to add question. Please try again.",
+        description: "Failed to delete question",
         variant: "destructive",
       });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('quizzes')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
-      toast({
-        title: "Success",
-        description: "Quiz deleted successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete quiz. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleQuizSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    createQuizMutation.mutate(formData);
-  };
-
-  const handleQuestionSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    createQuestionMutation.mutate(formData);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this quiz?')) {
-      deleteMutation.mutate(id);
+      return;
     }
+
+    toast({
+      title: "Success",
+      description: "Question deleted successfully",
+    });
   };
 
   if (isLoading) {
@@ -186,70 +74,93 @@ export const QuizManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Quiz Management</h2>
-        <div className="space-x-2">
-          <Button onClick={() => setIsAddingQuiz(true)}>
-            Add New Quiz
-          </Button>
-          {selectedQuiz && (
-            <Button onClick={() => setIsAddingQuestion(true)}>
-              Add Question
-            </Button>
-          )}
-        </div>
+        <Button onClick={() => setIsAddingQuiz(true)}>
+          Create New Quiz
+        </Button>
       </div>
 
       {isAddingQuiz && categories && (
-        <QuizForm
-          contentId={null}
-          onComplete={(id) => {
-            setIsAddingQuiz(false);
-            setSelectedQuiz({ id } as Quiz);
-            setIsAddingQuestion(true);
-          }}
-          onCancel={() => setIsAddingQuiz(false)}
-          categories={categories}
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Quiz</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <QuizForm
+              contentId={null}
+              onComplete={(id) => {
+                setIsAddingQuiz(false);
+                setSelectedQuiz(id);
+                setIsAddingQuestion(true);
+              }}
+              onCancel={() => setIsAddingQuiz(false)}
+              categories={categories}
+            />
+          </CardContent>
+        </Card>
       )}
 
-      {isAddingQuestion && selectedQuiz && (
-        <QuizQuestionForm
-          quizId={selectedQuiz.id}
-          onSubmit={handleQuestionSubmit}
-          onClose={() => setIsAddingQuestion(false)}
-        />
+      {selectedQuiz && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {quizzes?.find(q => q.id === selectedQuiz)?.title}
+            </CardTitle>
+            <CardDescription>
+              Manage questions for this quiz
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex justify-end">
+              <Button onClick={() => setIsAddingQuestion(true)}>
+                Add Question
+              </Button>
+            </div>
+
+            {isAddingQuestion && (
+              <QuizQuestionForm
+                quizId={selectedQuiz}
+                onClose={() => setIsAddingQuestion(false)}
+              />
+            )}
+
+            <QuizQuestionList
+              quizId={selectedQuiz}
+              onEdit={() => {}} // To be implemented
+              onDelete={handleDeleteQuestion}
+            />
+          </CardContent>
+        </Card>
       )}
 
-      {quizzes && quizzes.length > 0 ? (
+      {!selectedQuiz && quizzes && quizzes.length > 0 && (
         <div className="grid gap-4">
           {quizzes.map((quiz) => (
-            <div key={quiz.id} className="p-4 border rounded-lg">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium">{quiz.title}</h3>
-                  <p className="text-sm text-gray-600">{quiz.description}</p>
-                </div>
-                <div className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedQuiz(quiz)}
-                  >
-                    Edit
+            <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="text-lg">{quiz.title}</CardTitle>
+                <CardDescription>{quiz.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Category: {quiz.quiz_categories?.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Difficulty: {quiz.difficulty_level}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Points: {quiz.points}
+                    </p>
+                  </div>
+                  <Button onClick={() => setSelectedQuiz(quiz.id)}>
+                    Manage Questions
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(quiz.id)}
-                  >
-                    Delete
-                  </Button>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
-      ) : (
-        <p className="text-center text-gray-600">No quizzes found. Create one to get started!</p>
       )}
     </div>
   );
