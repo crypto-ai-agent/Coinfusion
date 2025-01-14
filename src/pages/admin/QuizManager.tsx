@@ -7,6 +7,7 @@ import { QuizQuestionForm } from "@/components/admin/quiz/QuizQuestionForm";
 import { QuizQuestionList } from "@/components/admin/quiz/QuizQuestionList";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft } from "lucide-react";
 
 export const QuizManager = () => {
   const [isAddingQuiz, setIsAddingQuiz] = useState(false);
@@ -70,6 +71,11 @@ export const QuizManager = () => {
     });
   };
 
+  const handleBackToQuizzes = () => {
+    setSelectedQuiz(null);
+    setIsAddingQuestion(false);
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -77,10 +83,26 @@ export const QuizManager = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Quiz Management</h2>
-        <Button onClick={() => setIsAddingQuiz(true)}>
-          Create New Quiz
-        </Button>
+        <div className="flex items-center gap-4">
+          {selectedQuiz && (
+            <Button 
+              variant="ghost" 
+              onClick={handleBackToQuizzes}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Quizzes
+            </Button>
+          )}
+          <h2 className="text-xl font-semibold">
+            {selectedQuiz ? 'Quiz Questions' : 'Quiz Management'}
+          </h2>
+        </div>
+        {!selectedQuiz && (
+          <Button onClick={() => setIsAddingQuiz(true)}>
+            Create New Quiz
+          </Button>
+        )}
       </div>
 
       {isAddingQuiz && categories && (
