@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-type QuizFormProps = {
+export type QuizFormProps = {
   contentId?: string;
   onComplete: () => void;
   onCancel: () => void;

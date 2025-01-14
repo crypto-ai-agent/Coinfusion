@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 type Content = {
@@ -25,6 +24,8 @@ type Content = {
   published: boolean;
   content_type: 'guide' | 'educational';
   has_quiz: boolean;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export const EducationalContentManager = () => {
@@ -45,7 +46,7 @@ export const EducationalContentManager = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as Content[];
     },
   });
 
@@ -167,7 +168,7 @@ export const EducationalContentManager = () => {
   };
 
   const filteredContent = content?.filter(item => 
-    selectedContentType === 'all' || item.content_type === selectedContentType
+    item.content_type === selectedContentType
   );
 
   if (isLoading) {
