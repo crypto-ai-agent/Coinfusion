@@ -149,6 +149,7 @@ export const QuizManager = () => {
               }}
               onCancel={() => setIsAddingQuiz(false)}
               categories={categories}
+              mode="create" // Added the required mode prop
             />
           </CardContent>
         </Card>

@@ -25,6 +25,7 @@ interface ContentTableProps {
   onEdit: (item: any) => void;
   onDelete: (id: string) => void;
   onAddQuiz?: (item: any) => void;
+  onCreateNewQuiz?: (item: any) => void; // Added this prop
 }
 
 export const ContentTable = ({ items, onEdit, onDelete, onAddQuiz }: ContentTableProps) => {
