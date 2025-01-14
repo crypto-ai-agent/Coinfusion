@@ -601,6 +601,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_unique_slug: {
+        Args: {
+          base_slug: string
+        }
+        Returns: string
+      }
       is_admin: {
         Args: {
           user_id: string

@@ -4,15 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ContentForm } from "@/components/admin/ContentForm";
 import { ContentTable } from "@/components/admin/ContentTable";
+import { QuizCreationFlow } from "@/components/admin/QuizCreationFlow";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { QuizForm } from "@/components/admin/QuizForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 type Content = {
   id: string;
@@ -24,16 +18,13 @@ type Content = {
   published: boolean;
   content_type: 'guide' | 'educational';
   has_quiz: boolean;
-  created_at?: string;
-  updated_at?: string;
 };
 
 export const EducationalContentManager = () => {
   const [isAddingContent, setIsAddingContent] = useState(false);
   const [editingContent, setEditingContent] = useState<Content | null>(null);
   const [selectedContentType, setSelectedContentType] = useState<'guide' | 'educational'>('guide');
-  const [showQuizDialog, setShowQuizDialog] = useState(false);
-  const [currentEducationalContent, setCurrentEducationalContent] = useState<Content | null>(null);
+  const [quizContent, setQuizContent] = useState<Content | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -175,6 +166,36 @@ export const EducationalContentManager = () => {
     return <div>Loading...</div>;
   }
 
+  const handleAddQuiz = (content: Content) => {
+    setQuizContent(content);
+  };
+
+  const handleQuizComplete = async () => {
+    if (quizContent) {
+      // Update the content to mark it as having a quiz
+      const { error } = await supabase
+        .from('educational_content')
+        .update({ has_quiz: true })
+        .eq('id', quizContent.id);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update content. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
+      setQuizContent(null);
+      toast({
+        title: "Success",
+        description: "Quiz added successfully.",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="guides" className="w-full">
@@ -216,7 +237,7 @@ export const EducationalContentManager = () => {
             />
           ) : (
             <ContentTable 
-              items={filteredContent?.filter(item => item.content_type === 'guide') || []}
+              items={content?.filter(item => item.content_type === 'guide') || []}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
@@ -247,32 +268,22 @@ export const EducationalContentManager = () => {
             />
           ) : (
             <ContentTable 
-              items={filteredContent?.filter(item => item.content_type === 'educational') || []}
+              items={content?.filter(item => item.content_type === 'educational') || []}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAddQuiz={handleAddQuiz}
             />
           )}
         </TabsContent>
       </Tabs>
 
-      <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create Quiz for {currentEducationalContent?.title}</DialogTitle>
-          </DialogHeader>
-          <QuizForm
-            contentId={currentEducationalContent?.id}
-            onComplete={() => {
-              setShowQuizDialog(false);
-              setCurrentEducationalContent(null);
-            }}
-            onCancel={() => {
-              setShowQuizDialog(false);
-              setCurrentEducationalContent(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      {quizContent && (
+        <QuizCreationFlow
+          contentId={quizContent.id}
+          onComplete={handleQuizComplete}
+          onCancel={() => setQuizContent(null)}
+        />
+      )}
     </div>
   );
 };
