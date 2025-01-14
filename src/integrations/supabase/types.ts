@@ -65,7 +65,9 @@ export type Database = {
           author_id: string
           category: string
           content: string
+          content_type: string
           created_at: string | null
+          has_quiz: boolean | null
           id: string
           published: boolean | null
           slug: string
@@ -76,7 +78,9 @@ export type Database = {
           author_id: string
           category: string
           content: string
+          content_type?: string
           created_at?: string | null
+          has_quiz?: boolean | null
           id?: string
           published?: boolean | null
           slug: string
@@ -87,7 +91,9 @@ export type Database = {
           author_id?: string
           category?: string
           content?: string
+          content_type?: string
           created_at?: string | null
+          has_quiz?: boolean | null
           id?: string
           published?: boolean | null
           slug?: string
@@ -369,6 +375,7 @@ export type Database = {
           id: string
           points: number | null
           prerequisites: string[] | null
+          quiz_type: string
           tags: string[] | null
           title: string
           updated_at: string | null
@@ -383,6 +390,7 @@ export type Database = {
           id?: string
           points?: number | null
           prerequisites?: string[] | null
+          quiz_type?: string
           tags?: string[] | null
           title: string
           updated_at?: string | null
@@ -397,6 +405,7 @@ export type Database = {
           id?: string
           points?: number | null
           prerequisites?: string[] | null
+          quiz_type?: string
           tags?: string[] | null
           title?: string
           updated_at?: string | null

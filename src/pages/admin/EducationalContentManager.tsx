@@ -6,7 +6,14 @@ import { ContentForm } from "@/components/admin/ContentForm";
 import { ContentTable } from "@/components/admin/ContentTable";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ContentCardManager } from "@/components/admin/ContentCardManager";
+import { QuizForm } from "@/components/admin/QuizForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 type Content = {
   id: string;
@@ -16,11 +23,16 @@ type Content = {
   author_id: string;
   slug: string;
   published: boolean;
+  content_type: 'guide' | 'educational';
+  has_quiz: boolean;
 };
 
 export const EducationalContentManager = () => {
   const [isAddingContent, setIsAddingContent] = useState(false);
   const [editingContent, setEditingContent] = useState<Content | null>(null);
+  const [selectedContentType, setSelectedContentType] = useState<'guide' | 'educational'>('guide');
+  const [showQuizDialog, setShowQuizDialog] = useState(false);
+  const [currentEducationalContent, setCurrentEducationalContent] = useState<Content | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -40,18 +52,28 @@ export const EducationalContentManager = () => {
   const createMutation = useMutation({
     mutationFn: async (newContent: Omit<Content, 'id' | 'author_id'>) => {
       const { data: { session } } = await supabase.auth.getSession();
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('educational_content')
-        .insert([{ ...newContent, author_id: session?.user.id }]);
+        .insert([{ ...newContent, author_id: session?.user.id }])
+        .select()
+        .single();
+
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
       toast({
         title: "Success",
         description: "Content created successfully.",
       });
       setIsAddingContent(false);
+
+      // If it's educational content and user wants to add a quiz
+      if (data.content_type === 'educational' && data.has_quiz) {
+        setCurrentEducationalContent(data);
+        setShowQuizDialog(true);
+      }
     },
     onError: () => {
       toast({
@@ -121,6 +143,8 @@ export const EducationalContentManager = () => {
       category: formData.get('category') as string,
       slug: formData.get('slug') as string,
       published: formData.get('published') === 'true',
+      content_type: selectedContentType,
+      has_quiz: selectedContentType === 'educational' && formData.get('has_quiz') === 'true',
     };
 
     if (editingContent) {
@@ -132,6 +156,7 @@ export const EducationalContentManager = () => {
 
   const handleEdit = (item: Content) => {
     setEditingContent(item);
+    setSelectedContentType(item.content_type);
     setIsAddingContent(false);
   };
 
@@ -141,52 +166,112 @@ export const EducationalContentManager = () => {
     }
   };
 
+  const filteredContent = content?.filter(item => 
+    selectedContentType === 'all' || item.content_type === selectedContentType
+  );
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="content" className="w-full">
+      <Tabs defaultValue="guides" className="w-full">
         <TabsList>
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="cards">Content Cards</TabsTrigger>
+          <TabsTrigger 
+            value="guides" 
+            onClick={() => setSelectedContentType('guide')}
+          >
+            Guides
+          </TabsTrigger>
+          <TabsTrigger 
+            value="educational" 
+            onClick={() => setSelectedContentType('educational')}
+          >
+            Educational Materials
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="content">
+        <TabsContent value="guides">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Educational Content</h2>
+            <h2 className="text-xl font-semibold">Guides</h2>
             {!editingContent && (
               <Button onClick={() => setIsAddingContent(true)}>
-                Add New Content
+                Add New Guide
               </Button>
             )}
           </div>
 
-          {(isAddingContent || editingContent) ? (
+          {(isAddingContent || editingContent) && selectedContentType === 'guide' ? (
             <ContentForm 
               onSubmit={handleSubmit}
               onClose={() => {
                 setIsAddingContent(false);
                 setEditingContent(null);
               }}
-              type="education"
+              type="guide"
               isEditing={!!editingContent}
               defaultValues={editingContent || undefined}
             />
           ) : (
             <ContentTable 
-              items={content || []}
+              items={filteredContent?.filter(item => item.content_type === 'guide') || []}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
           )}
         </TabsContent>
 
-        <TabsContent value="cards">
-          <ContentCardManager />
+        <TabsContent value="educational">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">Educational Materials</h2>
+            {!editingContent && (
+              <Button onClick={() => setIsAddingContent(true)}>
+                Add New Educational Material
+              </Button>
+            )}
+          </div>
+
+          {(isAddingContent || editingContent) && selectedContentType === 'educational' ? (
+            <ContentForm 
+              onSubmit={handleSubmit}
+              onClose={() => {
+                setIsAddingContent(false);
+                setEditingContent(null);
+              }}
+              type="educational"
+              isEditing={!!editingContent}
+              defaultValues={editingContent || undefined}
+              showQuizOption
+            />
+          ) : (
+            <ContentTable 
+              items={filteredContent?.filter(item => item.content_type === 'educational') || []}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create Quiz for {currentEducationalContent?.title}</DialogTitle>
+          </DialogHeader>
+          <QuizForm
+            contentId={currentEducationalContent?.id}
+            onComplete={() => {
+              setShowQuizDialog(false);
+              setCurrentEducationalContent(null);
+            }}
+            onCancel={() => {
+              setShowQuizDialog(false);
+              setCurrentEducationalContent(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
