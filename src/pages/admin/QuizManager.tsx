@@ -10,14 +10,14 @@ type Quiz = {
   id: string;
   title: string;
   description: string;
-  category_id: string;
+  content_id: string | null;
+  quiz_type: string;
   points: number;
   difficulty_level: string;
-  estimated_duration: string;
-  published?: boolean;
-  category?: string;
-  author_id?: string;
-  slug?: string;
+  created_at: string;
+  updated_at: string;
+  category_id: string;
+  estimated_duration?: string;
   quiz_categories: {
     name: string;
   };
@@ -48,16 +48,7 @@ export const QuizManager = () => {
       const { data, error } = await supabase
         .from('quizzes')
         .select(`
-          id,
-          title,
-          description,
-          content_id,
-          quiz_type,
-          points,
-          difficulty_level,
-          created_at,
-          updated_at,
-          category_id,
+          *,
           quiz_categories (
             id,
             name
@@ -207,16 +198,22 @@ export const QuizManager = () => {
         </div>
       </div>
 
-      {isAddingQuiz && (
+      {isAddingQuiz && categories && (
         <QuizForm
-          onSubmit={handleQuizSubmit}
-          onClose={() => setIsAddingQuiz(false)}
-          categories={categories || []}
+          contentId={null}
+          onComplete={(id) => {
+            setIsAddingQuiz(false);
+            setSelectedQuiz({ id } as Quiz);
+            setIsAddingQuestion(true);
+          }}
+          onCancel={() => setIsAddingQuiz(false)}
+          categories={categories}
         />
       )}
 
-      {isAddingQuestion && (
+      {isAddingQuestion && selectedQuiz && (
         <QuizQuestionForm
+          quizId={selectedQuiz.id}
           onSubmit={handleQuestionSubmit}
           onClose={() => setIsAddingQuestion(false)}
         />

@@ -9,16 +9,30 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuizCreationFlowProps {
   contentId: string;
-  onComplete: () => void;
+  onComplete: (id: string) => void;
   onCancel: () => void;
 }
 
 export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreationFlowProps) => {
   const [step, setStep] = useState<'quiz' | 'questions'>('quiz');
   const [quizId, setQuizId] = useState<string | null>(null);
+
+  const { data: categories } = useQuery({
+    queryKey: ['quizCategories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('quiz_categories')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleQuizCreated = (id: string) => {
     setQuizId(id);
@@ -44,15 +58,17 @@ export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreati
             contentId={contentId}
             onComplete={handleQuizCreated}
             onCancel={onCancel}
+            categories={categories || []}
           />
         ) : (
           <div className="space-y-4">
             <QuizQuestionForm
+              quizId={quizId || ''}
               onSubmit={() => {}}
               onClose={() => {}}
             />
             <div className="flex justify-end space-x-2">
-              <Button onClick={onComplete}>Finish</Button>
+              <Button onClick={() => onComplete(quizId || '')}>Finish</Button>
             </div>
           </div>
         )}

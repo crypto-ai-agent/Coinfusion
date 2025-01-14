@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 
 type QuizQuestionFormProps = {
+  quizId: string;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
   defaultValues?: {
@@ -26,6 +27,7 @@ type QuizQuestionFormProps = {
 };
 
 export const QuizQuestionForm = ({
+  quizId,
   onSubmit,
   onClose,
   defaultValues,
