@@ -27,6 +27,7 @@ export const EducationalContentManager = () => {
   const [editingContent, setEditingContent] = useState<Content | null>(null);
   const [selectedContentType, setSelectedContentType] = useState<'guide' | 'educational'>('guide');
   const [quizContent, setQuizContent] = useState<Content | null>(null);
+  const [isCreatingNewQuiz, setIsCreatingNewQuiz] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -43,12 +44,25 @@ export const EducationalContentManager = () => {
     },
   });
 
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
   const createMutation = useMutation({
-    mutationFn: async (newContent: Omit<Content, 'id' | 'author_id'>) => {
+    mutationFn: async (newContent: Omit<Content, 'id' | 'author_id' | 'slug'>) => {
       const { data: { session } } = await supabase.auth.getSession();
+      const slug = generateSlug(newContent.title);
+      
       const { data, error } = await supabase
         .from('educational_content')
-        .insert([{ ...newContent, author_id: session?.user.id }])
+        .insert([{ 
+          ...newContent, 
+          author_id: session?.user.id,
+          slug
+        }])
         .select()
         .single();
 
@@ -65,14 +79,16 @@ export const EducationalContentManager = () => {
 
       if (data.content_type === 'educational' && data.has_quiz) {
         setQuizContent(data as Content);
+        setIsCreatingNewQuiz(true);
       }
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
         description: "Failed to create content. Please try again.",
         variant: "destructive",
       });
+      console.error('Creation error:', error);
     },
   });
 
@@ -80,7 +96,10 @@ export const EducationalContentManager = () => {
     mutationFn: async (updatedContent: Content) => {
       const { error } = await supabase
         .from('educational_content')
-        .update(updatedContent)
+        .update({
+          ...updatedContent,
+          slug: generateSlug(updatedContent.title)
+        })
         .eq('id', updatedContent.id);
       if (error) throw error;
     },
@@ -133,41 +152,26 @@ export const EducationalContentManager = () => {
       title: formData.get('title') as string,
       content: formData.get('content') as string,
       category: formData.get('category') as string,
-      slug: formData.get('slug') as string,
       published: formData.get('published') === 'true',
       content_type: selectedContentType,
       has_quiz: selectedContentType === 'educational' && formData.get('has_quiz') === 'true',
     };
 
     if (editingContent) {
-      updateMutation.mutate({ ...contentData, id: editingContent.id, author_id: editingContent.author_id });
+      updateMutation.mutate({ ...contentData, id: editingContent.id, author_id: editingContent.author_id, slug: editingContent.slug });
     } else {
       createMutation.mutate(contentData);
     }
   };
 
-  const handleEdit = (item: Content) => {
-    setEditingContent(item);
-    setSelectedContentType(item.content_type);
-    setIsAddingContent(false);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this content?')) {
-      deleteMutation.mutate(id);
-    }
-  };
-
-  const filteredContent = content?.filter(item => 
-    item.content_type === selectedContentType
-  );
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   const handleAddQuiz = (content: Content) => {
     setQuizContent(content);
+    setIsCreatingNewQuiz(false);
+  };
+
+  const handleCreateNewQuiz = (content: Content) => {
+    setQuizContent(content);
+    setIsCreatingNewQuiz(true);
   };
 
   const handleQuizComplete = async () => {
@@ -188,12 +192,33 @@ export const EducationalContentManager = () => {
 
       queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
       setQuizContent(null);
+      setIsCreatingNewQuiz(false);
       toast({
         title: "Success",
         description: "Quiz added successfully.",
       });
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  const handleEdit = (item: Content) => {
+    setEditingContent(item);
+    setSelectedContentType(item.content_type);
+    setIsAddingContent(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this content?')) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const filteredContent = content?.filter(item => 
+    item.content_type === selectedContentType
+  );
 
   return (
     <div className="space-y-6">
@@ -271,6 +296,7 @@ export const EducationalContentManager = () => {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onAddQuiz={handleAddQuiz}
+              onCreateNewQuiz={handleCreateNewQuiz}
             />
           )}
         </TabsContent>
@@ -280,7 +306,11 @@ export const EducationalContentManager = () => {
         <QuizCreationFlow
           contentId={quizContent.id}
           onComplete={handleQuizComplete}
-          onCancel={() => setQuizContent(null)}
+          onCancel={() => {
+            setQuizContent(null);
+            setIsCreatingNewQuiz(false);
+          }}
+          isCreatingNew={isCreatingNewQuiz}
         />
       )}
     </div>

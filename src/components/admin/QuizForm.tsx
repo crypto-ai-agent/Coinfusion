@@ -16,11 +16,26 @@ export type QuizFormProps = {
     name: string;
     description?: string;
   }>;
+  mode: 'create' | 'select';
 };
 
-export const QuizForm = ({ contentId, onComplete, onCancel, categories }: QuizFormProps) => {
+export const QuizForm = ({ contentId, onComplete, onCancel, categories, mode }: QuizFormProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+
+  const { data: existingQuizzes } = useQuery({
+    queryKey: ['unattachedQuizzes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('quizzes')
+        .select('*')
+        .is('content_id', null);
+      if (error) throw error;
+      return data;
+    },
+    enabled: mode === 'select',
+  });
 
   const createQuizMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -58,11 +73,75 @@ export const QuizForm = ({ contentId, onComplete, onCancel, categories }: QuizFo
     },
   });
 
+  const attachQuizMutation = useMutation({
+    mutationFn: async (quizId: string) => {
+      const { error } = await supabase
+        .from('quizzes')
+        .update({ content_id: contentId })
+        .eq('id', quizId);
+      if (error) throw error;
+      return quizId;
+    },
+    onSuccess: (quizId) => {
+      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+      toast({
+        title: "Success",
+        description: "Quiz attached successfully.",
+      });
+      onComplete(quizId);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to attach quiz. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    createQuizMutation.mutate(formData);
+    if (mode === 'select' && selectedQuizId) {
+      attachQuizMutation.mutate(selectedQuizId);
+    } else {
+      const formData = new FormData(e.currentTarget);
+      createQuizMutation.mutate(formData);
+    }
   };
+
+  if (mode === 'select') {
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
+          {existingQuizzes?.map((quiz) => (
+            <div key={quiz.id} className="flex items-center space-x-2 p-4 border rounded">
+              <input
+                type="radio"
+                name="quiz_id"
+                value={quiz.id}
+                checked={selectedQuizId === quiz.id}
+                onChange={(e) => setSelectedQuizId(e.target.value)}
+                className="h-4 w-4"
+              />
+              <div>
+                <h3 className="font-medium">{quiz.title}</h3>
+                <p className="text-sm text-gray-500">{quiz.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!selectedQuizId}>
+            Attach Quiz
+          </Button>
+        </div>
+      </form>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

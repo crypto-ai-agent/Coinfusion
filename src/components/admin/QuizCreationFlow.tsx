@@ -16,9 +16,15 @@ interface QuizCreationFlowProps {
   contentId: string;
   onComplete: (id: string) => void;
   onCancel: () => void;
+  isCreatingNew?: boolean;
 }
 
-export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreationFlowProps) => {
+export const QuizCreationFlow = ({ 
+  contentId, 
+  onComplete, 
+  onCancel,
+  isCreatingNew = true 
+}: QuizCreationFlowProps) => {
   const [step, setStep] = useState<'quiz' | 'questions'>('quiz');
   const [quizId, setQuizId] = useState<string | null>(null);
 
@@ -36,7 +42,11 @@ export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreati
 
   const handleQuizCreated = (id: string) => {
     setQuizId(id);
-    setStep('questions');
+    if (isCreatingNew) {
+      setStep('questions');
+    } else {
+      onComplete(id);
+    }
   };
 
   const handleQuestionComplete = () => {
@@ -44,6 +54,28 @@ export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreati
       onComplete(quizId);
     }
   };
+
+  if (!isCreatingNew) {
+    return (
+      <Dialog open={true} onOpenChange={() => onCancel()}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Select Existing Quiz</DialogTitle>
+            <DialogDescription>
+              Choose a quiz to attach to this content
+            </DialogDescription>
+          </DialogHeader>
+          <QuizForm
+            contentId={contentId}
+            onComplete={handleQuizCreated}
+            onCancel={onCancel}
+            categories={categories || []}
+            mode="select"
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={true} onOpenChange={() => onCancel()}>
@@ -65,6 +97,7 @@ export const QuizCreationFlow = ({ contentId, onComplete, onCancel }: QuizCreati
             onComplete={handleQuizCreated}
             onCancel={onCancel}
             categories={categories || []}
+            mode="create"
           />
         ) : (
           <div className="space-y-4">
