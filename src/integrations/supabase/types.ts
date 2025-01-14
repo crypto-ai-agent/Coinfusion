@@ -384,6 +384,7 @@ export type Database = {
           difficulty_level: string | null
           estimated_duration: unknown | null
           id: string
+          is_expert_quiz: boolean | null
           points: number | null
           prerequisites: string[] | null
           quiz_type: string
@@ -399,6 +400,7 @@ export type Database = {
           difficulty_level?: string | null
           estimated_duration?: unknown | null
           id?: string
+          is_expert_quiz?: boolean | null
           points?: number | null
           prerequisites?: string[] | null
           quiz_type?: string
@@ -414,6 +416,7 @@ export type Database = {
           difficulty_level?: string | null
           estimated_duration?: unknown | null
           id?: string
+          is_expert_quiz?: boolean | null
           points?: number | null
           prerequisites?: string[] | null
           quiz_type?: string
