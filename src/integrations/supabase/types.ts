@@ -435,6 +435,7 @@ export type Database = {
           description: string | null
           difficulty_level: string | null
           estimated_duration: unknown | null
+          guide_id: string | null
           id: string
           is_expert_quiz: boolean | null
           points: number | null
@@ -451,6 +452,7 @@ export type Database = {
           description?: string | null
           difficulty_level?: string | null
           estimated_duration?: unknown | null
+          guide_id?: string | null
           id?: string
           is_expert_quiz?: boolean | null
           points?: number | null
@@ -467,6 +469,7 @@ export type Database = {
           description?: string | null
           difficulty_level?: string | null
           estimated_duration?: unknown | null
+          guide_id?: string | null
           id?: string
           is_expert_quiz?: boolean | null
           points?: number | null
@@ -489,6 +492,13 @@ export type Database = {
             columns: ["content_id"]
             isOneToOne: false
             referencedRelation: "educational_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quizzes_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides"
             referencedColumns: ["id"]
           },
         ]

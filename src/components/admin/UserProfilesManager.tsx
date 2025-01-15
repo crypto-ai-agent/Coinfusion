@@ -29,35 +29,33 @@ export const UserProfilesManager = () => {
 
   const fetchUsers = async () => {
     try {
+      // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*");
 
       if (profilesError) throw profilesError;
 
+      // Fetch roles
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
         .select("*");
 
       if (rolesError) throw rolesError;
 
-      const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
-      
-      if (usersError) throw usersError;
-
-      const combinedData = users.map((user: any) => {
-        const profile = profiles?.find((p: any) => p.id === user.id);
-        const role = roles?.find((r: any) => r.user_id === user.id);
+      // Combine the data
+      const combinedData = profiles?.map((profile) => {
+        const role = roles?.find((r) => r.user_id === profile.id);
         return {
-          id: user.id,
-          email: user.email,
-          username: profile?.username,
-          display_name: profile?.display_name,
+          id: profile.id,
+          email: profile.email || '',
+          username: profile.username,
+          display_name: profile.display_name,
           role: role?.role || "user",
         };
       });
 
-      setUsers(combinedData);
+      setUsers(combinedData || []);
     } catch (error: any) {
       toast({
         title: "Error fetching users",
@@ -69,7 +67,12 @@ export const UserProfilesManager = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      // Delete the profile (this will cascade to user_roles due to RLS policies)
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
+
       if (error) throw error;
 
       toast({
