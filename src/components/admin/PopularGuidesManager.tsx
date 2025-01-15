@@ -9,6 +9,7 @@ export const PopularGuidesManager = () => {
   const queryClient = useQueryClient();
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
 
+  // Fetch current popular guide selections
   const { data: popularGuides } = useQuery({
     queryKey: ['popularGuides'],
     queryFn: async () => {
@@ -16,8 +17,15 @@ export const PopularGuidesManager = () => {
         .from('popular_guide_selections')
         .select('*')
         .maybeSingle();
-      if (error) throw error;
-      setSelectedGuides(data?.guide_ids || []);
+      
+      if (error) {
+        console.error('Error fetching popular guides:', error);
+        throw error;
+      }
+      
+      if (data?.guide_ids) {
+        setSelectedGuides(data.guide_ids);
+      }
       return data;
     },
   });
@@ -31,7 +39,11 @@ export const PopularGuidesManager = () => {
           guide_ids: guideIds,
           updated_at: new Date().toISOString(),
         });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error updating popular guides:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['popularGuides'] });

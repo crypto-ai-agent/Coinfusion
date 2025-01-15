@@ -30,6 +30,7 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
 }) => {
   const [open, setOpen] = useState(false);
 
+  // Updated query to fetch all guides
   const { data: guides, isLoading } = useQuery({
     queryKey: ['guides'],
     queryFn: async () => {
@@ -38,7 +39,10 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching guides:', error);
+        throw error;
+      }
       return data as Guide[];
     },
   });
@@ -49,7 +53,6 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
       newSelection = selectedGuides.filter(id => id !== guideId);
     } else {
       if (selectedGuides.length >= 4) {
-        // Remove the oldest selection and add the new one
         newSelection = [...selectedGuides.slice(1), guideId];
       } else {
         newSelection = [...selectedGuides, guideId];
