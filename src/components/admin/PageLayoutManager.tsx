@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { CardSelector } from "./CardSelector";
 import { CardPreview } from "./CardPreview";
+import { PopularGuidesManager } from "./PopularGuidesManager";
 import {
   Select,
   SelectContent,
@@ -166,6 +167,12 @@ export const PageLayoutManager = () => {
           <CardSelector onSelect={handleAddCard} />
         </div>
       </div>
+
+      {selectedPage === 'education' && (
+        <div className="mt-8">
+          <PopularGuidesManager />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center p-8">

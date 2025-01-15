@@ -222,6 +222,27 @@ export type Database = {
         }
         Relationships: []
       }
+      popular_guide_selections: {
+        Row: {
+          created_at: string | null
+          guide_ids: string[] | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          guide_ids?: string[] | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          guide_ids?: string[] | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -6,17 +6,39 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const PopularGuides = () => {
-  const { data: guides } = useQuery({
-    queryKey: ['popularGuides'],
+  const { data: popularSelection } = useQuery({
+    queryKey: ['popularGuideSelection'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('guides')
-        .select('*')
-        .order('created_at')
-        .limit(4);
+        .from('popular_guide_selections')
+        .select('guide_ids')
+        .single();
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: guides } = useQuery({
+    queryKey: ['popularGuides', popularSelection?.guide_ids],
+    queryFn: async () => {
+      if (!popularSelection?.guide_ids?.length) {
+        const { data, error } = await supabase
+          .from('guides')
+          .select('*')
+          .order('created_at')
+          .limit(4);
+        if (error) throw error;
+        return data;
+      }
+
+      const { data, error } = await supabase
+        .from('guides')
+        .select('*')
+        .in('id', popularSelection.guide_ids);
+      if (error) throw error;
+      return data;
+    },
+    enabled: true,
   });
 
   return (
