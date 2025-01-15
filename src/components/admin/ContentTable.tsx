@@ -90,13 +90,14 @@ export const ContentTable = ({
             <DialogTitle>Select Quiz</DialogTitle>
           </DialogHeader>
           <QuizSelector
-            onSelect={async (quizId) => {
-              if (quizId && selectedContent && onAddQuiz) {
-                onAddQuiz({ ...selectedContent, quiz_id: quizId });
+            onSelect={async (quizIds) => {
+              if (quizIds[0] && selectedContent && onAddQuiz) {
+                onAddQuiz({ ...selectedContent, quiz_id: quizIds[0] });
               }
               setShowQuizSelector(false);
             }}
-            currentQuizId={selectedContent?.quiz_id}
+            selectedQuizzes={selectedContent?.quiz_id ? [selectedContent.quiz_id] : []}
+            singleSelect={true}
           />
         </DialogContent>
       </Dialog>

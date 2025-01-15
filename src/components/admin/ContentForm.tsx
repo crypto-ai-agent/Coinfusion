@@ -121,7 +121,8 @@ export const ContentForm = ({
           </DialogHeader>
           <QuizSelector
             onSelect={handleQuizSelect}
-            currentQuizId={selectedQuizId}
+            selectedQuizzes={selectedQuizId ? [selectedQuizId] : []}
+            singleSelect={true}
           />
         </DialogContent>
       </Dialog>

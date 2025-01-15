@@ -25,9 +25,14 @@ type Quiz = {
   } | null;
 };
 
-export const QuizSelector = ({ onSelect, selectedQuizzes = [] }: { 
+export const QuizSelector = ({ 
+  onSelect, 
+  selectedQuizzes = [], 
+  singleSelect = true 
+}: { 
   onSelect: (quizIds: string[]) => void;
   selectedQuizzes?: string[];
+  singleSelect?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -55,13 +60,17 @@ export const QuizSelector = ({ onSelect, selectedQuizzes = [] }: {
 
   const handleSelect = (quizId: string) => {
     let newSelection: string[];
-    if (selectedQuizzes.includes(quizId)) {
-      newSelection = selectedQuizzes.filter(id => id !== quizId);
+    if (singleSelect) {
+      newSelection = [quizId];
     } else {
-      if (selectedQuizzes.length >= 4) {
-        newSelection = [...selectedQuizzes.slice(1), quizId];
+      if (selectedQuizzes.includes(quizId)) {
+        newSelection = selectedQuizzes.filter(id => id !== quizId);
       } else {
-        newSelection = [...selectedQuizzes, quizId];
+        if (selectedQuizzes.length >= 4) {
+          newSelection = [...selectedQuizzes.slice(1), quizId];
+        } else {
+          newSelection = [...selectedQuizzes, quizId];
+        }
       }
     }
     onSelect(newSelection);
@@ -71,7 +80,7 @@ export const QuizSelector = ({ onSelect, selectedQuizzes = [] }: {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-sm font-medium mb-1">Currently Selected Quizzes</h4>
+          <h4 className="text-sm font-medium mb-1">Currently Selected {singleSelect ? 'Quiz' : 'Quizzes'}</h4>
           <div className="flex flex-wrap gap-2">
             {selectedQuizzes.length === 0 ? (
               <p className="text-sm text-muted-foreground">No quizzes selected</p>
@@ -94,10 +103,11 @@ export const QuizSelector = ({ onSelect, selectedQuizzes = [] }: {
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Select Featured Quizzes</DialogTitle>
+              <DialogTitle>Select {singleSelect ? 'a Quiz' : 'Featured Quizzes'}</DialogTitle>
               <DialogDescription>
-                Choose up to 4 quizzes to feature in the Featured Quizzes section.
-                New selections will replace the oldest selected quiz if the limit is reached.
+                {singleSelect 
+                  ? 'Choose a quiz to attach to this content.'
+                  : 'Choose up to 4 quizzes to feature. New selections will replace the oldest selected quiz if the limit is reached.'}
               </DialogDescription>
             </DialogHeader>
             <ScrollArea className="h-[400px] mt-4">
