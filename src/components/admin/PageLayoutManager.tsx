@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, LayoutPanelTop, Separator } from "lucide-react";
+import { Loader2, LayoutPanelTop } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 type PageLayout = {
@@ -162,15 +162,17 @@ export const PageLayoutManager = () => {
       </div>
 
       {selectedPage === 'education' && (
-        <Card className="p-6 bg-slate-50">
-          <div className="flex items-center gap-2 mb-4">
-            <LayoutPanelTop className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold">Popular Content Management</h3>
-          </div>
-          <div className="space-y-6">
-            <PopularGuidesManager />
-          </div>
-        </Card>
+        <div className="space-y-8">
+          <Card className="p-6 bg-slate-50">
+            <div className="flex items-center gap-2 mb-4">
+              <LayoutPanelTop className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">Popular Content Management</h3>
+            </div>
+            <div className="space-y-6">
+              <PopularGuidesManager />
+            </div>
+          </Card>
+        </div>
       )}
 
       <Card className="p-6">
