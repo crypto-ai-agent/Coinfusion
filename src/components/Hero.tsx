@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export const Hero = () => {
   return (
-    <div className="relative min-h-[80vh]">
+    <div className="relative min-h-[56vh]"> {/* Reduced from 80vh to 56vh (30% reduction) */}
       {/* Background with gradient and 3D effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F2C] to-[#2C1F3B] z-0">
         {/* Animated particles/dots effect */}
@@ -27,9 +27,9 @@ export const Hero = () => {
         transformOrigin: 'center center',
       }} />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
-        <div className="text-center space-y-6">
-          <div className="space-y-4">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12"> {/* Reduced padding */}
+        <div className="text-center space-y-4"> {/* Reduced spacing */}
+          <div className="space-y-3"> {/* Reduced spacing */}
             <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] animate-fade-in">
               CoinFusion
             </h1>
@@ -56,7 +56,7 @@ export const Hero = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-12 text-white/90 animate-fade-in delay-400">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-8 text-white/90 animate-fade-in delay-400"> {/* Reduced gap and margin */}
             {[
               { label: "Active Users", value: "100K+" },
               { label: "Daily Transactions", value: "$2.5M" },
