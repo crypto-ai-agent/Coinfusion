@@ -39,6 +39,27 @@ export const PageLayoutManager = () => {
   const queryClient = useQueryClient();
   const [selectedPage, setSelectedPage] = useState("education");
 
+  // Add a new query to fetch the special content cards
+  const { data: specialCards, isLoading: isLoadingCards } = useQuery({
+    queryKey: ['specialContentCards'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('content_cards')
+        .select('id, title')
+        .in('title', ['Educational Hub Header', 'Popular Content Showcase']);
+      
+      if (error) throw error;
+      return data.reduce((acc: Record<string, string>, card) => {
+        if (card.title === 'Educational Hub Header') {
+          acc.headerCardId = card.id;
+        } else if (card.title === 'Popular Content Showcase') {
+          acc.showcaseCardId = card.id;
+        }
+        return acc;
+      }, {});
+    },
+  });
+
   const { data: layouts, isLoading, error } = useQuery({
     queryKey: ['pageLayouts', selectedPage],
     queryFn: async () => {
@@ -132,6 +153,14 @@ export const PageLayoutManager = () => {
     );
   }
 
+  if (isLoading || isLoadingCards) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -161,7 +190,7 @@ export const PageLayoutManager = () => {
         </div>
       </div>
 
-      {selectedPage === 'education' && (
+      {selectedPage === 'education' && specialCards && (
         <div className="space-y-8">
           <Card className="p-6 bg-slate-50">
             <div className="flex items-center gap-2 mb-4">
@@ -175,11 +204,11 @@ export const PageLayoutManager = () => {
               </div>
               <div className="pt-6">
                 <h4 className="text-md font-medium mb-4">Educational Hub Header</h4>
-                <CardPreview cardId="featured_content_header" />
+                <CardPreview cardId={specialCards.headerCardId} />
               </div>
               <div className="pt-6">
                 <h4 className="text-md font-medium mb-4">Popular Content Showcase</h4>
-                <CardPreview cardId="popular_content_showcase" />
+                <CardPreview cardId={specialCards.showcaseCardId} />
               </div>
             </div>
           </Card>
