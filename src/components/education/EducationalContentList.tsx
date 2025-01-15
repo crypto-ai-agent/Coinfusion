@@ -42,7 +42,6 @@ export const EducationalContentList = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our interface
       return (data as any[]).map(item => ({
         ...item,
         description: item.content.substring(0, 150) + '...' // Create description from content
@@ -79,7 +78,7 @@ export const EducationalContentList = () => {
             <div className="flex justify-between items-start">
               <Badge variant="outline">{item.category}</Badge>
               {userProgress?.completed_content?.includes(item.id) && (
-                <Badge variant="outline" className="bg-green-100 text-green-800">
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
                   Completed
                 </Badge>
               )}

@@ -6,10 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import { ProgressHeader } from "./education/ProgressHeader";
 import { AuthPrompt } from "./education/AuthPrompt";
 import { GuideCollection } from "./education/GuideCollection";
-import { EducationalContentSection } from "./education/EducationalContentSection";
 import { QuizCard } from "./education/QuizCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EducationalContentList } from "@/components/education/EducationalContentList";
+import { PopularGuides } from "@/components/PopularGuides";
 
 export const Education = () => {
   const { toast } = useToast();
@@ -20,32 +20,6 @@ export const Education = () => {
     current_streak: number;
     last_activity: string;
   } | null>(null);
-
-  const { data: layout } = useQuery({
-    queryKey: ['pageLayout', 'education'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('page_layouts')
-        .select('*')
-        .eq('page_name', 'education')
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: contentCards } = useQuery({
-    queryKey: ['contentCards'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('content_cards')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order');
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const { data: guides } = useQuery({
     queryKey: ['guides'],
@@ -88,10 +62,10 @@ export const Education = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
-            Learning Paths
+            Educational Hub
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Start your journey into cryptocurrency with our comprehensive guides
+            Expand your cryptocurrency knowledge
           </p>
           {!isAuthenticated && <AuthPrompt />}
           {isAuthenticated && userProgress && (
@@ -127,6 +101,10 @@ export const Education = () => {
             <EducationalContentList />
           </TabsContent>
         </Tabs>
+
+        <div className="mt-16">
+          <PopularGuides />
+        </div>
       </div>
     </section>
   );
