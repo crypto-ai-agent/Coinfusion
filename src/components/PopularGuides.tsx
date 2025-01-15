@@ -12,20 +12,20 @@ export const PopularGuides = () => {
       const { data, error } = await supabase
         .from('popular_guide_selections')
         .select('guide_ids')
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
   });
 
-  const { data: guides } = useQuery({
+  const { data: guides, isLoading } = useQuery({
     queryKey: ['popularGuides', popularSelection?.guide_ids],
     queryFn: async () => {
       if (!popularSelection?.guide_ids?.length) {
         const { data, error } = await supabase
           .from('guides')
           .select('*')
-          .order('created_at')
+          .order('created_at', { ascending: false })
           .limit(4);
         if (error) throw error;
         return data;
@@ -34,12 +34,27 @@ export const PopularGuides = () => {
       const { data, error } = await supabase
         .from('guides')
         .select('*')
-        .in('id', popularSelection.guide_ids);
+        .in('id', popularSelection.guide_ids)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
     enabled: true,
   });
+
+  if (isLoading) {
+    return (
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">Loading popular guides...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!guides?.length) {
+    return null;
+  }
 
   return (
     <section className="py-20">

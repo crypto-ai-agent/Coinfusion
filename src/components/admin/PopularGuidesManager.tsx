@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { GuideSelector } from "./GuideSelector";
 
@@ -16,7 +15,7 @@ export const PopularGuidesManager = () => {
       const { data, error } = await supabase
         .from('popular_guide_selections')
         .select('*')
-        .single();
+        .maybeSingle();
       if (error) throw error;
       setSelectedGuides(data?.guide_ids || []);
       return data;
@@ -36,6 +35,7 @@ export const PopularGuidesManager = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['popularGuides'] });
+      queryClient.invalidateQueries({ queryKey: ['popularGuideSelection'] });
       toast({
         title: "Success",
         description: "Popular guides updated successfully.",
