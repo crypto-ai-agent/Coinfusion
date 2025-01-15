@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type ContentCard = {
   id: string;
@@ -11,17 +12,17 @@ type ContentCard = {
 };
 
 export const CardPreview = ({ cardId }: { cardId: string }) => {
-  const { data: card, isLoading } = useQuery({
+  const { data: card, isLoading, error } = useQuery({
     queryKey: ['cardPreview', cardId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('content_cards')
         .select('id, title, description, card_type, style_variant')
         .eq('id', cardId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
-      return data as ContentCard;
+      return data as ContentCard | null;
     },
   });
 
@@ -29,8 +30,20 @@ export const CardPreview = ({ cardId }: { cardId: string }) => {
     return <div className="animate-pulse bg-gray-200 h-20 rounded" />;
   }
 
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>Failed to load card preview</AlertDescription>
+      </Alert>
+    );
+  }
+
   if (!card) {
-    return null;
+    return (
+      <Alert>
+        <AlertDescription>This content card no longer exists</AlertDescription>
+      </Alert>
+    );
   }
 
   return (
