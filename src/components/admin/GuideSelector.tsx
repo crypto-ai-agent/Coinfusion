@@ -30,10 +30,10 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
 }) => {
   const [open, setOpen] = useState(false);
 
-  // Updated query to fetch all guides
   const { data: guides, isLoading } = useQuery({
-    queryKey: ['guides'],
+    queryKey: ['allGuides'],
     queryFn: async () => {
+      console.log('Fetching all guides...');
       const { data, error } = await supabase
         .from('guides')
         .select('*')
@@ -43,11 +43,16 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
         console.error('Error fetching guides:', error);
         throw error;
       }
+      
+      console.log('Fetched guides:', data);
       return data as Guide[];
     },
   });
 
   const handleSelect = (guideId: string) => {
+    console.log('Selecting guide:', guideId);
+    console.log('Current selected guides:', selectedGuides);
+    
     let newSelection: string[];
     if (selectedGuides.includes(guideId)) {
       newSelection = selectedGuides.filter(id => id !== guideId);
@@ -58,6 +63,8 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
         newSelection = [...selectedGuides, guideId];
       }
     }
+    
+    console.log('New selection:', newSelection);
     onSelect(newSelection);
   };
 

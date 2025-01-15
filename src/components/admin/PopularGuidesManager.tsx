@@ -9,10 +9,10 @@ export const PopularGuidesManager = () => {
   const queryClient = useQueryClient();
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
 
-  // Fetch current popular guide selections
   const { data: popularGuides } = useQuery({
     queryKey: ['popularGuides'],
     queryFn: async () => {
+      console.log('Fetching popular guides selections...');
       const { data, error } = await supabase
         .from('popular_guide_selections')
         .select('*')
@@ -23,6 +23,7 @@ export const PopularGuidesManager = () => {
         throw error;
       }
       
+      console.log('Fetched popular guides selections:', data);
       if (data?.guide_ids) {
         setSelectedGuides(data.guide_ids);
       }
@@ -32,6 +33,7 @@ export const PopularGuidesManager = () => {
 
   const updatePopularGuidesMutation = useMutation({
     mutationFn: async (guideIds: string[]) => {
+      console.log('Updating popular guides with:', guideIds);
       const { error } = await supabase
         .from('popular_guide_selections')
         .upsert({
@@ -63,6 +65,7 @@ export const PopularGuidesManager = () => {
   });
 
   const handleUpdateGuides = (guideIds: string[]) => {
+    console.log('Handling guide update with:', guideIds);
     setSelectedGuides(guideIds);
     updatePopularGuidesMutation.mutate(guideIds);
   };

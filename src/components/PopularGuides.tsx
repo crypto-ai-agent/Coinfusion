@@ -13,7 +13,11 @@ export const PopularGuides = () => {
         .from('popular_guide_selections')
         .select('guide_ids')
         .maybeSingle();
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error fetching popular guide selection:', error);
+        throw error;
+      }
       return data;
     },
   });
@@ -27,7 +31,11 @@ export const PopularGuides = () => {
           .select('*')
           .order('created_at', { ascending: false })
           .limit(4);
-        if (error) throw error;
+        
+        if (error) {
+          console.error('Error fetching default guides:', error);
+          throw error;
+        }
         return data;
       }
 
@@ -36,7 +44,11 @@ export const PopularGuides = () => {
         .select('*')
         .in('id', popularSelection.guide_ids)
         .order('created_at', { ascending: false });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error fetching selected guides:', error);
+        throw error;
+      }
       return data;
     },
     enabled: true,
