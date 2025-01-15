@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 type Guide = {
   id: string;
@@ -29,8 +30,9 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
   selectedGuides?: string[];
 }) => {
   const [open, setOpen] = useState(false);
+  const { toast } = useToast();
 
-  const { data: guides, isLoading } = useQuery({
+  const { data: guides, isLoading, error } = useQuery({
     queryKey: ['allGuides'],
     queryFn: async () => {
       console.log('Fetching all guides...');
@@ -41,6 +43,11 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
       
       if (error) {
         console.error('Error fetching guides:', error);
+        toast({
+          title: "Error fetching guides",
+          description: error.message,
+          variant: "destructive",
+        });
         throw error;
       }
       
@@ -59,6 +66,10 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
     } else {
       if (selectedGuides.length >= 4) {
         newSelection = [...selectedGuides.slice(1), guideId];
+        toast({
+          title: "Maximum guides reached",
+          description: "Removed oldest selection to add new guide",
+        });
       } else {
         newSelection = [...selectedGuides, guideId];
       }
@@ -67,6 +78,14 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
     console.log('New selection:', newSelection);
     onSelect(newSelection);
   };
+
+  if (error) {
+    return (
+      <div className="text-red-500">
+        Error loading guides. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -105,10 +124,10 @@ export const GuideSelector = ({ onSelect, selectedGuides = [] }: {
               <div className="grid grid-cols-1 gap-4">
                 {isLoading ? (
                   <div className="text-center py-4">Loading guides...</div>
-                ) : guides?.length === 0 ? (
+                ) : !guides?.length ? (
                   <div className="text-center py-4">No guides available</div>
                 ) : (
-                  guides?.map((guide) => (
+                  guides.map((guide) => (
                     <Button
                       key={guide.id}
                       variant={selectedGuides.includes(guide.id) ? "default" : "outline"}

@@ -9,7 +9,7 @@ export const PopularGuidesManager = () => {
   const queryClient = useQueryClient();
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
 
-  const { data: popularGuides } = useQuery({
+  const { data: popularGuides, isLoading: isLoadingPopularGuides } = useQuery({
     queryKey: ['popularGuides'],
     queryFn: async () => {
       console.log('Fetching popular guides selections...');
@@ -20,6 +20,11 @@ export const PopularGuidesManager = () => {
       
       if (error) {
         console.error('Error fetching popular guides:', error);
+        toast({
+          title: "Error fetching popular guides",
+          description: error.message,
+          variant: "destructive",
+        });
         throw error;
       }
       
@@ -69,6 +74,10 @@ export const PopularGuidesManager = () => {
     setSelectedGuides(guideIds);
     updatePopularGuidesMutation.mutate(guideIds);
   };
+
+  if (isLoadingPopularGuides) {
+    return <div>Loading popular guides...</div>;
+  }
 
   return (
     <div className="space-y-4">
