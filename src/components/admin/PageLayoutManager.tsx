@@ -168,8 +168,19 @@ export const PageLayoutManager = () => {
               <LayoutPanelTop className="h-5 w-5 text-primary" />
               <h3 className="text-lg font-semibold">Popular Content Management</h3>
             </div>
-            <div className="space-y-6">
-              <PopularGuidesManager />
+            <div className="space-y-6 divide-y divide-gray-200">
+              <div className="pb-6">
+                <h4 className="text-md font-medium mb-4">Popular Guides</h4>
+                <PopularGuidesManager />
+              </div>
+              <div className="pt-6">
+                <h4 className="text-md font-medium mb-4">Educational Hub Header</h4>
+                <CardPreview cardId="featured_content_header" />
+              </div>
+              <div className="pt-6">
+                <h4 className="text-md font-medium mb-4">Popular Content Showcase</h4>
+                <CardPreview cardId="popular_content_showcase" />
+              </div>
             </div>
           </Card>
         </div>
