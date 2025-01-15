@@ -33,8 +33,8 @@ export const ContentForm = ({
   const [showQuizSelector, setShowQuizSelector] = useState(false);
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(defaultValues?.quiz_id || null);
 
-  const handleQuizSelect = (quizId: string | null) => {
-    setSelectedQuizId(quizId);
+  const handleQuizSelect = (quizIds: string[]) => {
+    setSelectedQuizId(quizIds[0] || null);
     setShowQuizSelector(false);
   };
 

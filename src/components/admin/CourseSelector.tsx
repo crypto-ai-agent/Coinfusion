@@ -17,9 +17,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 type Course = {
   id: string;
   title: string;
-  description: string;
+  content: string;
   category: string;
   content_type: string;
+  published: boolean;
 };
 
 export const CourseSelector = ({ onSelect, selectedCourses = [] }: { 
@@ -107,7 +108,7 @@ export const CourseSelector = ({ onSelect, selectedCourses = [] }: {
                         <span className="font-medium">{course.title}</span>
                         <Badge>{course.category}</Badge>
                       </div>
-                      <span className="text-sm text-muted-foreground">{course.description}</span>
+                      <span className="text-sm text-muted-foreground">{course.content}</span>
                     </Button>
                   ))
                 )}
