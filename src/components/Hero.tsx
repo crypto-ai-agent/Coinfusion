@@ -5,7 +5,7 @@ export const Hero = () => {
   return (
     <div className="relative min-h-screen">
       {/* Background with gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-blue-900/90 z-0" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F2C] to-[#2C1F3B] z-0" />
       
       {/* Animated grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] z-0" />
@@ -13,18 +13,18 @@ export const Hero = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
         <div className="text-center space-y-8">
           <div className="space-y-4">
-            <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300 animate-fade-in">
-              The Future of Crypto Analytics
+            <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] animate-fade-in">
+              CoinFusion
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto animate-fade-in delay-200">
-              Harness the power of AI to make smarter cryptocurrency investment decisions
+              AI-Powered Crypto Analytics for the Future of Finance
             </p>
           </div>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in delay-300">
             <Button
               size="lg"
-              className="bg-white text-primary hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
+              className="bg-[#8B5CF6] text-white hover:bg-[#7C3AED] transition-all duration-300 transform hover:scale-105"
               onClick={() => document.getElementById("rankings")?.scrollIntoView({ behavior: "smooth" })}
             >
               Explore Markets
@@ -33,7 +33,7 @@ export const Hero = () => {
             <Button
               size="lg"
               variant="outline"
-              className="border-white text-white hover:bg-white/10"
+              className="border-[#D946EF] text-[#D946EF] hover:bg-[#D946EF]/10"
             >
               Watch Demo
             </Button>

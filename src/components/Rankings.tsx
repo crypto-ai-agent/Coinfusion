@@ -26,14 +26,14 @@ export const Rankings = () => {
   const stablecoins = cryptos.filter(crypto => crypto.is_stablecoin);
 
   return (
-    <section id="rankings" className="py-20">
+    <section id="rankings" className="py-20 bg-[#1A1F2C]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 space-y-4">
           <div className="flex justify-center gap-4 mb-6">
-            <Database className="h-12 w-12 text-secondary" />
-            <Signal className="h-12 w-12 text-secondary" />
+            <Database className="h-12 w-12 text-[#D946EF]" />
+            <Signal className="h-12 w-12 text-[#8B5CF6]" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Live Market Data
           </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
