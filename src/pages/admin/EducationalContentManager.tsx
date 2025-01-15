@@ -35,22 +35,34 @@ export const EducationalContentManager = () => {
   const { data: content, isLoading } = useQuery({
     queryKey: ['educationalContent'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('educational_content')
-        .select(`
-          *,
-          quizzes (
-            title
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const { data: session } = await supabase.auth.getSession();
       
-      return data.map((item: any) => ({
-        ...item,
-        quiz_title: item.quizzes?.[0]?.title
-      }));
+      if (selectedContentType === 'guide') {
+        const { data, error } = await supabase
+          .from('guides')
+          .select('*, quizzes(title)')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data.map((item: any) => ({
+          ...item,
+          content: item.description,
+          quiz_title: item.quizzes?.[0]?.title,
+          content_type: 'guide'
+        }));
+      } else {
+        const { data, error } = await supabase
+          .from('educational_content')
+          .select('*, quizzes(title)')
+          .eq('content_type', 'educational')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data.map((item: any) => ({
+          ...item,
+          quiz_title: item.quizzes?.[0]?.title
+        }));
+      }
     },
   });
 
@@ -66,21 +78,40 @@ export const EducationalContentManager = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const slug = generateSlug(newContent.title);
       
-      const { data, error } = await supabase
-        .from('educational_content')
-        .insert([{ 
-          ...newContent, 
-          author_id: session?.user.id,
-          slug
-        }])
-        .select()
-        .single();
+      if (newContent.content_type === 'guide') {
+        const { data, error } = await supabase
+          .from('guides')
+          .insert([{ 
+            title: newContent.title,
+            description: newContent.content,
+            category: newContent.category,
+            read_time: '5 min',
+            points: 10,
+            difficulty: 'beginner',
+          }])
+          .select()
+          .single();
 
-      if (error) throw error;
-      return data as Content;
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from('educational_content')
+          .insert([{ 
+            ...newContent, 
+            author_id: session?.user.id,
+            slug: `${slug}-${Date.now()}` // Make slug unique by adding timestamp
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
+      queryClient.invalidateQueries({ queryKey: ['guides'] }); // Add this line
       toast({
         title: "Success",
         description: "Content created successfully.",
@@ -92,10 +123,10 @@ export const EducationalContentManager = () => {
         setIsCreatingNewQuiz(true);
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to create content. Please try again.",
+        description: error.message || "Failed to create content. Please try again.",
         variant: "destructive",
       });
       console.error('Creation error:', error);
@@ -226,10 +257,6 @@ export const EducationalContentManager = () => {
     }
   };
 
-  const filteredContent = content?.filter(item => 
-    item.content_type === selectedContentType
-  );
-
   return (
     <div className="space-y-6">
       <Tabs defaultValue="guides" className="w-full">
@@ -271,7 +298,7 @@ export const EducationalContentManager = () => {
             />
           ) : (
             <ContentTable 
-              items={content?.filter(item => item.content_type === 'guide') || []}
+              items={content || []}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
