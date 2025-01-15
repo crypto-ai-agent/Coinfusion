@@ -9,6 +9,7 @@ import { BookOpen, Award } from "lucide-react";
 interface EducationalContent {
   id: string;
   title: string;
+  content: string;
   description: string;
   category: string;
   has_quiz: boolean;
@@ -40,7 +41,12 @@ export const EducationalContentList = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as EducationalContent[];
+      
+      // Transform the data to match our interface
+      return (data as any[]).map(item => ({
+        ...item,
+        description: item.content.substring(0, 150) + '...' // Create description from content
+      })) as EducationalContent[];
     },
   });
 
@@ -73,7 +79,7 @@ export const EducationalContentList = () => {
             <div className="flex justify-between items-start">
               <Badge variant="outline">{item.category}</Badge>
               {userProgress?.completed_content?.includes(item.id) && (
-                <Badge variant="success" className="bg-green-100 text-green-800">
+                <Badge variant="outline" className="bg-green-100 text-green-800">
                   Completed
                 </Badge>
               )}

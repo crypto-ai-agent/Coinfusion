@@ -8,6 +8,8 @@ import { AuthPrompt } from "./education/AuthPrompt";
 import { GuideCollection } from "./education/GuideCollection";
 import { EducationalContentSection } from "./education/EducationalContentSection";
 import { QuizCard } from "./education/QuizCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EducationalContentList } from "@/components/education/EducationalContentList";
 
 export const Education = () => {
   const { toast } = useToast();
@@ -158,16 +160,29 @@ export const Education = () => {
           )}
         </div>
 
-        <div className="space-y-12">
-          {layout?.layout_order && Array.isArray(layout.layout_order) ? (
-            layout.layout_order.map((cardId) => {
-              const card = contentCards?.find((c) => c.id === cardId);
-              return card ? renderCard(card) : null;
-            })
-          ) : (
-            contentCards?.map(card => renderCard(card))
-          )}
-        </div>
+        <Tabs defaultValue="guides" className="mt-8">
+          <TabsList>
+            <TabsTrigger value="guides">Learning Guides</TabsTrigger>
+            <TabsTrigger value="educational">Educational Content</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="guides">
+            <div className="space-y-12">
+              {layout?.layout_order && Array.isArray(layout.layout_order) ? (
+                layout.layout_order.map((cardId) => {
+                  const card = contentCards?.find((c) => c.id === cardId);
+                  return card ? renderCard(card) : null;
+                })
+              ) : (
+                contentCards?.map(card => renderCard(card))
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="educational">
+            <EducationalContentList />
+          </TabsContent>
+        </Tabs>
       </div>
     </section>
   );
