@@ -7,21 +7,7 @@ import { ContentTable } from "@/components/admin/ContentTable";
 import { QuizCreationFlow } from "@/components/admin/QuizCreationFlow";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-type Content = {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  author_id: string;
-  slug: string;
-  published: boolean;
-  content_type: 'guide' | 'educational';
-  has_quiz?: boolean;
-  created_at?: string;
-  updated_at?: string;
-  quiz_title?: string;
-};
+import { Content } from "@/types/content";
 
 export const EducationalContentManager = () => {
   const [isAddingContent, setIsAddingContent] = useState(false);
@@ -33,7 +19,7 @@ export const EducationalContentManager = () => {
   const queryClient = useQueryClient();
 
   const { data: content, isLoading } = useQuery({
-    queryKey: ['educationalContent'],
+    queryKey: ['educationalContent', selectedContentType],
     queryFn: async () => {
       const { data: session } = await supabase.auth.getSession();
       
@@ -48,7 +34,9 @@ export const EducationalContentManager = () => {
           ...item,
           content: item.description,
           quiz_title: item.quizzes?.[0]?.title,
-          content_type: 'guide'
+          content_type: 'guide' as const,
+          has_quiz: !!item.quizzes?.[0],
+          published: true // Guides are always published
         }));
       } else {
         const { data, error } = await supabase
@@ -93,7 +81,12 @@ export const EducationalContentManager = () => {
           .single();
 
         if (error) throw error;
-        return data;
+        return {
+          ...data,
+          content_type: 'guide' as const,
+          has_quiz: false,
+          published: true
+        };
       } else {
         const { data, error } = await supabase
           .from('educational_content')
@@ -111,7 +104,7 @@ export const EducationalContentManager = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
-      queryClient.invalidateQueries({ queryKey: ['guides'] }); // Add this line
+      queryClient.invalidateQueries({ queryKey: ['guides'] });
       toast({
         title: "Success",
         description: "Content created successfully.",
