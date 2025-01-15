@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Navigation } from "@/components/Navigation";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PopularGuides } from "@/components/PopularGuides";
@@ -7,7 +6,6 @@ import { Education as EducationSection } from "@/components/Education";
 import { SearchBar } from "@/components/education/SearchBar";
 import { SearchResults } from "@/components/education/SearchResults";
 import { Header } from "@/components/education/Header";
-import { EducationalContentList } from "@/components/education/EducationalContentList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EducationPage = () => {
@@ -38,28 +36,15 @@ const EducationPage = () => {
   );
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
+    <div className="min-h-screen bg-gray-50">
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Header isAuthenticated={isAuthenticated} />
           <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
           
-          <Tabs defaultValue="guides" className="mt-8">
-            <TabsList>
-              <TabsTrigger value="guides">Learning Guides</TabsTrigger>
-              <TabsTrigger value="educational">Educational Content</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="guides">
-              <EducationSection />
-              <PopularGuides />
-            </TabsContent>
-            
-            <TabsContent value="educational">
-              <EducationalContentList />
-            </TabsContent>
-          </Tabs>
+          <div className="mt-8">
+            <EducationSection />
+          </div>
 
           {searchQuery && filteredContent && (
             <SearchResults results={filteredContent} />

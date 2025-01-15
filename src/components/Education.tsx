@@ -59,28 +59,6 @@ export const Education = () => {
     },
   });
 
-  const { data: educationalContent } = useQuery({
-    queryKey: ['educationalContent'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('educational_content')
-        .select(`
-          *,
-          quizzes!quizzes_content_id_fkey (
-            id,
-            title,
-            description,
-            points
-          )
-        `)
-        .eq('published', true)
-        .eq('content_type', 'educational')
-        .order('created_at');
-      if (error) throw error;
-      return data;
-    },
-  });
-
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -104,40 +82,6 @@ export const Education = () => {
 
     checkAuth();
   }, []);
-
-  const renderCard = (card: any) => {
-    switch (card.card_type) {
-      case 'guide_collection':
-        const cardGuides = guides?.filter(guide => 
-          card.guides?.some((g: any) => g.id === guide.id)
-        ) || [];
-        return (
-          <GuideCollection 
-            guides={cardGuides} 
-            completedContent={userProgress?.completed_content || []} 
-          />
-        );
-      case 'educational_content':
-        const content = educationalContent?.filter(content => 
-          card.content_ids?.includes(content.id)
-        ) || [];
-        return (
-          <EducationalContentSection 
-            content={content} 
-            completedContent={userProgress?.completed_content || []} 
-          />
-        );
-      case 'quiz_section':
-        return (
-          <QuizCard 
-            title={card.header_title || card.title}
-            description={card.header_description || card.description}
-          />
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <section id="education" className="py-20 bg-gray-50 rounded-xl">
@@ -168,14 +112,14 @@ export const Education = () => {
           
           <TabsContent value="guides">
             <div className="space-y-12">
-              {layout?.layout_order && Array.isArray(layout.layout_order) ? (
-                layout.layout_order.map((cardId) => {
-                  const card = contentCards?.find((c) => c.id === cardId);
-                  return card ? renderCard(card) : null;
-                })
-              ) : (
-                contentCards?.map(card => renderCard(card))
-              )}
+              <GuideCollection 
+                guides={guides || []} 
+                completedContent={userProgress?.completed_content || []} 
+              />
+              <QuizCard 
+                title="Knowledge Check"
+                description="Put your crypto knowledge to the test"
+              />
             </div>
           </TabsContent>
           
