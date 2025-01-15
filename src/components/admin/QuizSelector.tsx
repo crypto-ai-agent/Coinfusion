@@ -1,20 +1,37 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface QuizSelectorProps {
-  onSelect: (quizId: string | null) => void;
-  currentQuizId?: string | null;
-}
+type Quiz = {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  difficulty_level: string;
+  quiz_categories: {
+    name: string;
+  } | null;
+};
 
-export const QuizSelector = ({ onSelect, currentQuizId }: QuizSelectorProps) => {
-  const [selectedQuiz, setSelectedQuiz] = useState<string | null>(currentQuizId || null);
+export const QuizSelector = ({ onSelect, selectedQuizzes = [] }: { 
+  onSelect: (quizIds: string[]) => void;
+  selectedQuizzes?: string[];
+}) => {
+  const [open, setOpen] = useState(false);
 
-  const { data: quizzes } = useQuery({
+  const { data: quizzes, isLoading } = useQuery({
     queryKey: ['quizzes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -29,50 +46,92 @@ export const QuizSelector = ({ onSelect, currentQuizId }: QuizSelectorProps) => 
             name
           )
         `)
-        .is('content_id', null); // Only get unattached quizzes
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as Quiz[];
     },
   });
 
-  const handleConfirm = () => {
-    onSelect(selectedQuiz);
+  const handleSelect = (quizId: string) => {
+    let newSelection: string[];
+    if (selectedQuizzes.includes(quizId)) {
+      newSelection = selectedQuizzes.filter(id => id !== quizId);
+    } else {
+      if (selectedQuizzes.length >= 4) {
+        newSelection = [...selectedQuizzes.slice(1), quizId];
+      } else {
+        newSelection = [...selectedQuizzes, quizId];
+      }
+    }
+    onSelect(newSelection);
   };
 
   return (
     <div className="space-y-4">
-      <RadioGroup value={selectedQuiz || ''} onValueChange={(value) => setSelectedQuiz(value)}>
-        <div className="grid gap-4">
-          {quizzes?.map((quiz) => (
-            <Card key={quiz.id} className="p-4">
-              <div className="flex items-start space-x-3">
-                <RadioGroupItem value={quiz.id} id={quiz.id} />
-                <div className="flex-1">
-                  <Label htmlFor={quiz.id} className="text-base font-medium">
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="text-sm font-medium mb-1">Currently Selected Quizzes</h4>
+          <div className="flex flex-wrap gap-2">
+            {selectedQuizzes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No quizzes selected</p>
+            ) : (
+              quizzes?.filter(quiz => selectedQuizzes.includes(quiz.id))
+                .map(quiz => (
+                  <Badge key={quiz.id} variant="secondary">
                     {quiz.title}
-                  </Label>
-                  <p className="text-sm text-gray-500">{quiz.description}</p>
-                  <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                    <span>{quiz.points} points</span>
-                    <span>{quiz.difficulty_level}</span>
-                    {quiz.quiz_categories?.name && (
-                      <span>{quiz.quiz_categories.name}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
+                  </Badge>
+                ))
+            )}
+          </div>
         </div>
-      </RadioGroup>
-      <div className="flex justify-end space-x-2">
-        <Button onClick={() => onSelect(null)} variant="outline">
-          Cancel
-        </Button>
-        <Button onClick={handleConfirm} disabled={!selectedQuiz}>
-          Attach Quiz
-        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Manage Quizzes
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Select Featured Quizzes</DialogTitle>
+              <DialogDescription>
+                Choose up to 4 quizzes to feature in the Featured Quizzes section.
+                New selections will replace the oldest selected quiz if the limit is reached.
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="h-[400px] mt-4">
+              <div className="grid grid-cols-1 gap-4">
+                {isLoading ? (
+                  <div className="text-center py-4">Loading quizzes...</div>
+                ) : quizzes?.length === 0 ? (
+                  <div className="text-center py-4">No quizzes available</div>
+                ) : (
+                  quizzes?.map((quiz) => (
+                    <Button
+                      key={quiz.id}
+                      variant={selectedQuizzes.includes(quiz.id) ? "default" : "outline"}
+                      className="h-auto p-4 flex flex-col items-start space-y-2 w-full"
+                      onClick={() => handleSelect(quiz.id)}
+                    >
+                      <div className="flex justify-between items-start w-full">
+                        <span className="font-medium">{quiz.title}</span>
+                        <div className="flex gap-2">
+                          <Badge>{quiz.difficulty_level}</Badge>
+                          <Badge variant="outline">{quiz.points} pts</Badge>
+                        </div>
+                      </div>
+                      <span className="text-sm text-muted-foreground">{quiz.description}</span>
+                      {quiz.quiz_categories?.name && (
+                        <Badge variant="secondary">{quiz.quiz_categories.name}</Badge>
+                      )}
+                    </Button>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

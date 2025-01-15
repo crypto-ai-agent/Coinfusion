@@ -123,6 +123,27 @@ export type Database = {
         }
         Relationships: []
       }
+      featured_quiz_selections: {
+        Row: {
+          created_at: string | null
+          id: string
+          quiz_ids: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          quiz_ids?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          quiz_ids?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       guides: {
         Row: {
           category: string
@@ -218,6 +239,27 @@ export type Database = {
           id?: string
           layout_order?: Json
           page_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      popular_course_selections: {
+        Row: {
+          content_ids: string[] | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content_ids?: string[] | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          content_ids?: string[] | null
+          created_at?: string | null
+          id?: string
           updated_at?: string | null
         }
         Relationships: []
