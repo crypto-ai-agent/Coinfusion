@@ -3,15 +3,32 @@ import { Button } from "@/components/ui/button";
 
 export const Hero = () => {
   return (
-    <div className="relative min-h-[80vh]"> {/* Reduced from min-h-screen */}
-      {/* Background with gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F2C] to-[#2C1F3B] z-0" />
+    <div className="relative min-h-[80vh]">
+      {/* Background with gradient and 3D effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F2C] to-[#2C1F3B] z-0">
+        {/* Animated particles/dots effect */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)`,
+            backgroundSize: '32px 32px',
+            animation: 'moveBackground 20s linear infinite',
+            transform: 'perspective(1000px) rotateX(30deg)',
+            transformOrigin: 'center center'
+          }} />
+        </div>
+      </div>
       
-      {/* Animated grid background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] z-0" />
+      {/* Animated grid with 3D perspective */}
+      <div className="absolute inset-0" style={{
+        background: `linear-gradient(to right, #80808012 1px, transparent 1px),
+                    linear-gradient(to bottom, #80808012 1px, transparent 1px)`,
+        backgroundSize: '24px 24px',
+        transform: 'perspective(1000px) rotateX(30deg)',
+        transformOrigin: 'center center',
+      }} />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16"> {/* Reduced padding */}
-        <div className="text-center space-y-6"> {/* Reduced spacing */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        <div className="text-center space-y-6">
           <div className="space-y-4">
             <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] animate-fade-in">
               CoinFusion
@@ -39,7 +56,6 @@ export const Hero = () => {
             </Button>
           </div>
 
-          {/* Stats Section with reduced spacing */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-12 text-white/90 animate-fade-in delay-400">
             {[
               { label: "Active Users", value: "100K+" },

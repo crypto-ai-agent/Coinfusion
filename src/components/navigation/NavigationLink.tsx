@@ -18,8 +18,8 @@ export const NavigationLink = ({
   return (
     <Link
       to={href}
-      className={`text-gray-700 hover:text-primary transition-colors ${
-        currentPath === href ? "text-primary" : ""
+      className={`text-gray-300 hover:text-[#8B5CF6] transition-colors ${
+        currentPath === href ? "text-[#D946EF]" : ""
       } ${className}`}
       onClick={onClick}
     >

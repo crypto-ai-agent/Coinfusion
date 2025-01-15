@@ -67,10 +67,15 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        moveBackground: {
+          "0%": { transform: "perspective(1000px) rotateX(30deg) translateY(0)" },
+          "100%": { transform: "perspective(1000px) rotateX(30deg) translateY(-24px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "move-bg": "moveBackground 20s linear infinite",
       },
     },
   },
