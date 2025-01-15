@@ -7,6 +7,8 @@ import { Education as EducationSection } from "@/components/Education";
 import { SearchBar } from "@/components/education/SearchBar";
 import { SearchResults } from "@/components/education/SearchResults";
 import { Header } from "@/components/education/Header";
+import { EducationalContentList } from "@/components/education/EducationalContentList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EducationPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,8 +44,23 @@ const EducationPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Header isAuthenticated={isAuthenticated} />
           <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-          <EducationSection />
-          <PopularGuides />
+          
+          <Tabs defaultValue="guides" className="mt-8">
+            <TabsList>
+              <TabsTrigger value="guides">Learning Guides</TabsTrigger>
+              <TabsTrigger value="educational">Educational Content</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="guides">
+              <EducationSection />
+              <PopularGuides />
+            </TabsContent>
+            
+            <TabsContent value="educational">
+              <EducationalContentList />
+            </TabsContent>
+          </Tabs>
+
           {searchQuery && filteredContent && (
             <SearchResults results={filteredContent} />
           )}
