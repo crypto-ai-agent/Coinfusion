@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 
 interface UserProfile {
   id: string;
-  email: string;
+  email?: string;
   username: string | null;
   display_name: string | null;
   role: string;
@@ -29,7 +29,7 @@ export const UserProfilesManager = () => {
 
   const fetchUsers = async () => {
     try {
-      // Fetch profiles
+      // Fetch profiles and auth users data
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*");
@@ -48,7 +48,6 @@ export const UserProfilesManager = () => {
         const role = roles?.find((r) => r.user_id === profile.id);
         return {
           id: profile.id,
-          email: profile.email || '',
           username: profile.username,
           display_name: profile.display_name,
           role: role?.role || "user",
@@ -94,7 +93,6 @@ export const UserProfilesManager = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Email</TableHead>
             <TableHead>Username</TableHead>
             <TableHead>Display Name</TableHead>
             <TableHead>Role</TableHead>
@@ -104,7 +102,6 @@ export const UserProfilesManager = () => {
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
-              <TableCell>{user.email}</TableCell>
               <TableCell>{user.username}</TableCell>
               <TableCell>{user.display_name}</TableCell>
               <TableCell>{user.role}</TableCell>
