@@ -30,12 +30,12 @@ export const CryptoTable = ({ data }: CryptoTableProps) => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Price</TableHead>
-          <TableHead>24h Change</TableHead>
-          <TableHead className="hidden md:table-cell">Market Cap</TableHead>
-          <TableHead className="hidden lg:table-cell">Volume (24h)</TableHead>
-          <TableHead className="hidden xl:table-cell">Type</TableHead>
+          <TableHead className="text-gray-900 font-semibold">Name</TableHead>
+          <TableHead className="text-gray-900 font-semibold">Price</TableHead>
+          <TableHead className="text-gray-900 font-semibold">24h Change</TableHead>
+          <TableHead className="text-gray-900 font-semibold hidden md:table-cell">Market Cap</TableHead>
+          <TableHead className="text-gray-900 font-semibold hidden lg:table-cell">Volume (24h)</TableHead>
+          <TableHead className="text-gray-900 font-semibold hidden xl:table-cell">Type</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -43,21 +43,21 @@ export const CryptoTable = ({ data }: CryptoTableProps) => {
           <TableRow key={crypto.symbol}>
             <TableCell className="font-medium">
               <Link to={`/crypto/${crypto.id}`} className="flex items-center hover:text-primary">
-                <span className="mr-2">{crypto.name}</span>
+                <span className="mr-2 text-gray-900">{crypto.name}</span>
                 <span className="text-gray-500 text-sm">{crypto.symbol}</span>
               </Link>
             </TableCell>
-            <TableCell>{formatPrice(crypto.price_usd)}</TableCell>
+            <TableCell className="text-gray-900">{formatPrice(crypto.price_usd)}</TableCell>
             <TableCell>
               <PriceChange value={crypto.percent_change_24h} />
             </TableCell>
-            <TableCell className="hidden md:table-cell">
+            <TableCell className="hidden md:table-cell text-gray-900">
               {formatMarketCap(crypto.market_cap_usd)}
             </TableCell>
-            <TableCell className="hidden lg:table-cell">
+            <TableCell className="hidden lg:table-cell text-gray-900">
               {formatMarketCap(crypto.volume_24h_usd)}
             </TableCell>
-            <TableCell className="hidden xl:table-cell">
+            <TableCell className="hidden xl:table-cell text-gray-900">
               {crypto.type}
             </TableCell>
           </TableRow>
