@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, LayoutPanelTop, Separator } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 type PageLayout = {
   id: string;
@@ -49,18 +50,6 @@ export const PageLayoutManager = () => {
 
       if (error) throw error;
       return data as PageLayout;
-    },
-  });
-
-  const { data: contentCards } = useQuery({
-    queryKey: ['contentCards'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('content_cards')
-        .select('*')
-        .order('display_order');
-      if (error) throw error;
-      return data;
     },
   });
 
@@ -108,7 +97,6 @@ export const PageLayoutManager = () => {
 
   const handleAddCard = (cardId: string) => {
     if (!layouts) {
-      // Create new layout if it doesn't exist
       const newLayout = {
         id: crypto.randomUUID(),
         page_name: selectedPage,
@@ -145,9 +133,14 @@ export const PageLayoutManager = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Page Layout Manager</h2>
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold">Page Layout Manager</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage the layout and content of different pages
+          </p>
+        </div>
         <div className="flex items-center space-x-4">
           <Select
             value={selectedPage}
@@ -169,60 +162,73 @@ export const PageLayoutManager = () => {
       </div>
 
       {selectedPage === 'education' && (
-        <div className="mt-8">
-          <PopularGuidesManager />
-        </div>
+        <Card className="p-6 bg-slate-50">
+          <div className="flex items-center gap-2 mb-4">
+            <LayoutPanelTop className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">Popular Content Management</h3>
+          </div>
+          <div className="space-y-6">
+            <PopularGuidesManager />
+          </div>
+        </Card>
       )}
 
-      {isLoading ? (
-        <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <LayoutPanelTop className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold">Page Layout</h3>
         </div>
-      ) : (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="layout">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-2 min-h-[200px]"
-              >
-                {layouts?.layout_order?.map((cardId: string, index: number) => (
-                  <Draggable key={cardId} draggableId={cardId} index={index}>
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className="group relative"
-                      >
-                        <div className="p-4 bg-white rounded shadow hover:shadow-md transition-shadow">
-                          <CardPreview cardId={cardId} />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleRemoveCard(index)}
-                          >
-                            Remove
-                          </Button>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="layout">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="space-y-4"
+                >
+                  {layouts?.layout_order?.map((cardId: string, index: number) => (
+                    <Draggable key={cardId} draggableId={cardId} index={index}>
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="group relative bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                        >
+                          <div className="p-4">
+                            <CardPreview cardId={cardId} />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => handleRemoveCard(index)}
+                            >
+                              Remove
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      )}
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
 
-      {(!layouts?.layout_order || layouts.layout_order.length === 0) && !isLoading && (
-        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-          No layout items added yet. Add content cards to arrange them here.
-        </div>
-      )}
+        {(!layouts?.layout_order || layouts.layout_order.length === 0) && !isLoading && (
+          <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+            No layout items added yet. Add content cards to arrange them here.
+          </div>
+        )}
+      </Card>
     </div>
   );
 };
