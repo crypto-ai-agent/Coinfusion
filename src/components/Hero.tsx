@@ -1,41 +1,68 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Hero = () => {
   return (
-    <div className="relative bg-gradient-to-r from-primary to-blue-900 text-white py-32">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Your Ultimate Guide to the Crypto World
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-3xl mx-auto">
-            Learn, analyze, and make informed decisions in the cryptocurrency market
-          </p>
-          <div className="flex justify-center gap-4">
+    <div className="relative min-h-screen">
+      {/* Background with gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-blue-900/90 z-0" />
+      
+      {/* Animated grid background */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] z-0" />
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
+        <div className="text-center space-y-8">
+          <div className="space-y-4">
+            <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300 animate-fade-in">
+              The Future of Crypto Analytics
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto animate-fade-in delay-200">
+              Harness the power of AI to make smarter cryptocurrency investment decisions
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in delay-300">
             <Button
               size="lg"
-              variant="secondary"
-              className="group"
-              onClick={() => document.getElementById("education")?.scrollIntoView({ behavior: "smooth" })}
+              className="bg-white text-primary hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
+              onClick={() => document.getElementById("rankings")?.scrollIntoView({ behavior: "smooth" })}
             >
-              Start Learning
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              Explore Markets
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="bg-transparent border-white text-white hover:bg-white hover:text-primary"
-              onClick={() => document.getElementById("rankings")?.scrollIntoView({ behavior: "smooth" })}
+              className="border-white text-white hover:bg-white/10"
             >
-              View Rankings
+              Watch Demo
             </Button>
           </div>
+
+          {/* Stats Section */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto mt-20 text-white/90 animate-fade-in delay-400">
+            {[
+              { label: "Active Users", value: "100K+" },
+              { label: "Daily Transactions", value: "$2.5M" },
+              { label: "Supported Coins", value: "500+" },
+              { label: "Market Updates", value: "24/7" },
+            ].map((stat, index) => (
+              <div key={index} className="space-y-2">
+                <div className="text-3xl font-bold">{stat.value}</div>
+                <div className="text-sm text-gray-300">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <ChevronDown className="h-8 w-8 text-white/60" />
         </div>
       </div>
-      
-      {/* Decorative elements */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoLTJWMTBoMnYyMHptLTIgMGgtMlYxMGgydjIwem0tMiAwaC0yVjEwaDJ2MjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-10" />
+
+      {/* Decorative Elements */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoLTJWMTBoMnYyMHptLTIgMGgtMlYxMGgydjIwem0tMiAwaC0yVjEwaDJ2MjB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-5 z-0" />
     </div>
   );
 };
