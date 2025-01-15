@@ -76,7 +76,7 @@ export const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-[#1A1F2C]/80 backdrop-blur-lg fixed w-full z-50 border-b border-white/10">
+    <nav className="bg-[#1A1F2C]/95 backdrop-blur-lg fixed w-full z-50 border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">

@@ -1,17 +1,17 @@
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Hero = () => {
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-[80vh]"> {/* Reduced from min-h-screen */}
       {/* Background with gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F2C] to-[#2C1F3B] z-0" />
       
       {/* Animated grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] z-0" />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
-        <div className="text-center space-y-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16"> {/* Reduced padding */}
+        <div className="text-center space-y-6"> {/* Reduced spacing */}
           <div className="space-y-4">
             <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] animate-fade-in">
               CoinFusion
@@ -39,25 +39,20 @@ export const Hero = () => {
             </Button>
           </div>
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto mt-20 text-white/90 animate-fade-in delay-400">
+          {/* Stats Section with reduced spacing */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-12 text-white/90 animate-fade-in delay-400">
             {[
               { label: "Active Users", value: "100K+" },
               { label: "Daily Transactions", value: "$2.5M" },
               { label: "Supported Coins", value: "500+" },
               { label: "Market Updates", value: "24/7" },
             ].map((stat, index) => (
-              <div key={index} className="space-y-2">
+              <div key={index} className="space-y-2 bg-white/5 backdrop-blur-sm rounded-lg p-4 hover:bg-white/10 transition-colors">
                 <div className="text-3xl font-bold">{stat.value}</div>
                 <div className="text-sm text-gray-300">{stat.label}</div>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <ChevronDown className="h-8 w-8 text-white/60" />
         </div>
       </div>
 

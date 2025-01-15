@@ -14,7 +14,7 @@ export const CryptoTabs = ({ tokens, stablecoins, isLoading }: CryptoTabsProps) 
       <TabsList className="w-full flex space-x-4 p-1 bg-white/5 backdrop-blur-lg rounded-xl mb-8">
         <TabsTrigger 
           value="tokens" 
-          className="flex-1 py-3 rounded-lg data-[state=active]:bg-white/10"
+          className="flex-1 py-3 rounded-lg data-[state=active]:bg-white/10 text-white hover:text-white/90"
         >
           <div className="text-center">
             <h3 className="text-lg font-semibold">Cryptocurrencies</h3>
@@ -25,7 +25,7 @@ export const CryptoTabs = ({ tokens, stablecoins, isLoading }: CryptoTabsProps) 
         </TabsTrigger>
         <TabsTrigger 
           value="stablecoins" 
-          className="flex-1 py-3 rounded-lg data-[state=active]:bg-white/10"
+          className="flex-1 py-3 rounded-lg data-[state=active]:bg-white/10 text-white hover:text-white/90"
         >
           <div className="text-center">
             <h3 className="text-lg font-semibold">Stablecoins</h3>

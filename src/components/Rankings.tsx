@@ -26,9 +26,9 @@ export const Rankings = () => {
   const stablecoins = cryptos.filter(crypto => crypto.is_stablecoin);
 
   return (
-    <section id="rankings" className="py-20 bg-[#1A1F2C]">
+    <section id="rankings" className="py-12 bg-[#1A1F2C]"> {/* Reduced padding */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 space-y-4">
+        <div className="text-center mb-12 space-y-4">
           <div className="flex justify-center gap-4 mb-6">
             <Database className="h-12 w-12 text-[#D946EF]" />
             <Signal className="h-12 w-12 text-[#8B5CF6]" />
