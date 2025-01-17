@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ContentForm } from "@/components/admin/ContentForm";
 import { ContentTable } from "@/components/admin/ContentTable";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 type News = {
   id: string;
@@ -33,7 +34,14 @@ export const NewsManager = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch news articles.",
+          variant: "destructive",
+        });
+        throw error;
+      }
       
       return data.map(item => ({
         ...item,
@@ -45,9 +53,13 @@ export const NewsManager = () => {
   const createMutation = useMutation({
     mutationFn: async (newNews: Omit<News, 'id' | 'author_id'>) => {
       const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user.id) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('news_articles')
-        .insert([{ ...newNews, author_id: session?.user.id }])
+        .insert([{ ...newNews, author_id: session.user.id }])
         .select()
         .single();
 
@@ -62,10 +74,10 @@ export const NewsManager = () => {
       });
       setIsAddingNews(false);
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to create news article. Please try again.",
+        description: error.message || "Failed to create news article. Please try again.",
         variant: "destructive",
       });
     },
@@ -75,7 +87,7 @@ export const NewsManager = () => {
     mutationFn: async (updatedNews: News) => {
       const { error } = await supabase
         .from('news_articles')
-        .update({ ...updatedNews, content_type: 'educational' })
+        .update(updatedNews)
         .eq('id', updatedNews.id);
       if (error) throw error;
     },
@@ -87,10 +99,10 @@ export const NewsManager = () => {
       });
       setEditingNews(null);
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to update news article. Please try again.",
+        description: error.message || "Failed to update news article. Please try again.",
         variant: "destructive",
       });
     },
@@ -111,10 +123,10 @@ export const NewsManager = () => {
         description: "News article deleted successfully.",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to delete news article. Please try again.",
+        description: error.message || "Failed to delete news article. Please try again.",
         variant: "destructive",
       });
     },
@@ -128,37 +140,29 @@ export const NewsManager = () => {
       title: formData.get('title') as string,
       content: formData.get('content') as string,
       category: formData.get('category') as string,
-      slug: formData.get('slug') as string,
+      slug: formData.get('title') as string,
       published: formData.get('published') === 'true',
-      content_type: 'educational' as const,
     };
 
     if (editingNews) {
-      updateMutation.mutate({ ...newsData, id: editingNews.id, author_id: editingNews.author_id });
+      updateMutation.mutate({ ...newsData, id: editingNews.id, author_id: editingNews.author_id } as News);
     } else {
       createMutation.mutate(newsData);
     }
   };
 
-  const handleEdit = (item: News) => {
-    setEditingNews(item);
-    setIsAddingNews(false);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this news article?')) {
-      deleteMutation.mutate(id);
-    }
-  };
-
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">News Management</h2>
+        <h2 className="text-2xl font-semibold">News Management</h2>
         {!editingNews && (
           <Button onClick={() => setIsAddingNews(true)}>
             Add News Article
@@ -180,10 +184,19 @@ export const NewsManager = () => {
       ) : (
         <ContentTable 
           items={news || []}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={(item) => {
+            setEditingNews(item);
+            setIsAddingNews(false);
+          }}
+          onDelete={(id) => {
+            if (window.confirm('Are you sure you want to delete this news article?')) {
+              deleteMutation.mutate(id);
+            }
+          }}
         />
       )}
     </div>
   );
 };
+
+export default NewsManager;
