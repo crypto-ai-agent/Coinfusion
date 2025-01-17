@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 interface ContentFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
-  type: 'guide' | 'educational';
+  type: 'guide' | 'educational' | 'news';
   isEditing?: boolean;
   defaultValues?: {
     title: string;

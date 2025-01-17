@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ContentForm } from "@/components/admin/ContentForm";
-import { ContentTable } from "@/components/admin/ContentTable";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { NewsTable } from "@/components/admin/news/NewsTable";
+import { NewsForm } from "@/components/admin/news/NewsForm";
 
 type News = {
   id: string;
@@ -146,7 +146,7 @@ export const NewsManager = () => {
     };
 
     if (editingNews) {
-      updateMutation.mutate({ ...newsData, id: editingNews.id, author_id: editingNews.author_id } as News);
+      updateMutation.mutate({ ...newsData, id: editingNews.id, author_id: editingNews.author_id });
     } else {
       createMutation.mutate(newsData);
     }
@@ -172,19 +172,18 @@ export const NewsManager = () => {
       </div>
 
       {(isAddingNews || editingNews) ? (
-        <ContentForm 
+        <NewsForm 
           onSubmit={handleSubmit}
           onClose={() => {
             setIsAddingNews(false);
             setEditingNews(null);
           }}
-          type="news"
           isEditing={!!editingNews}
           defaultValues={editingNews || undefined}
         />
       ) : (
-        <ContentTable 
-          items={news || []}
+        <NewsTable 
+          news={news || []}
           onEdit={(item) => {
             setEditingNews(item);
             setIsAddingNews(false);
