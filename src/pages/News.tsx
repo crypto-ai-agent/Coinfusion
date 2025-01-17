@@ -10,6 +10,14 @@ const NewsPage = () => {
     queryKey: ['published-news'],
     queryFn: async () => {
       console.log('Fetching news articles...');
+      
+      // First, let's check all news articles
+      const allNews = await supabase
+        .from('news_articles')
+        .select('*');
+      console.log('All news articles:', allNews.data);
+      
+      // Then get only published ones
       const { data, error } = await supabase
         .from('news_articles')
         .select('*')
@@ -26,7 +34,7 @@ const NewsPage = () => {
         throw error;
       }
 
-      console.log('Fetched news articles:', data);
+      console.log('Fetched published news articles:', data);
       return data;
     },
   });
