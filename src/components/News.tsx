@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 
 interface NewsArticle {
   id: string;
@@ -8,6 +9,7 @@ interface NewsArticle {
   content: string;
   category: string;
   created_at: string;
+  slug: string;
 }
 
 interface NewsProps {
@@ -49,13 +51,13 @@ export const News = ({ articles }: NewsProps) => {
                     ? `${article.content.substring(0, 200)}...` 
                     : article.content}
                 </p>
-                <a
-                  href={`/news/${article.id}`}
+                <Link
+                  to={`/news/${article.slug}`}
                   className="text-primary hover:text-primary/80 font-medium inline-flex items-center group"
                 >
                   Read more
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </a>
+                </Link>
               </CardContent>
             </Card>
           ))}

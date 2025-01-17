@@ -15,7 +15,7 @@ type News = {
   author_id: string;
   slug: string;
   published: boolean;
-  content_type: 'guide' | 'educational';
+  content_type: 'news';
   created_at?: string;
   updated_at?: string;
 };
@@ -45,7 +45,7 @@ export const NewsManager = () => {
       
       return data.map(item => ({
         ...item,
-        content_type: 'educational' as const
+        content_type: 'news' as const
       }));
     },
   });
@@ -140,8 +140,9 @@ export const NewsManager = () => {
       title: formData.get('title') as string,
       content: formData.get('content') as string,
       category: formData.get('category') as string,
-      slug: formData.get('title') as string,
+      slug: formData.get('slug') as string || formData.get('title') as string,
       published: formData.get('published') === 'true',
+      content_type: 'news' as const
     };
 
     if (editingNews) {
@@ -177,7 +178,7 @@ export const NewsManager = () => {
             setIsAddingNews(false);
             setEditingNews(null);
           }}
-          type="educational"
+          type="news"
           isEditing={!!editingNews}
           defaultValues={editingNews || undefined}
         />
