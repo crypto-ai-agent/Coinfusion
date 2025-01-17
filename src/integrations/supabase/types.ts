@@ -188,6 +188,7 @@ export type Database = {
           author_id: string
           category: string
           content: string
+          content_type: string
           created_at: string | null
           id: string
           published: boolean | null
@@ -199,6 +200,7 @@ export type Database = {
           author_id: string
           category: string
           content: string
+          content_type?: string
           created_at?: string | null
           id?: string
           published?: boolean | null
@@ -210,6 +212,7 @@ export type Database = {
           author_id?: string
           category?: string
           content?: string
+          content_type?: string
           created_at?: string | null
           id?: string
           published?: boolean | null
