@@ -22,6 +22,11 @@ export const PopularGuidesManager = () => {
       
       if (error) {
         console.error('Error fetching popular guides:', error);
+        toast({
+          title: "Error fetching guides",
+          description: error.message,
+          variant: "destructive",
+        });
         throw error;
       }
       
@@ -33,33 +38,50 @@ export const PopularGuidesManager = () => {
     },
     retry: 3,
     retryDelay: 1000,
+    staleTime: 1000, // Add staleTime to prevent unnecessary refetches
   });
 
   const updatePopularGuidesMutation = useMutation({
     mutationFn: async (guideIds: string[]) => {
       console.log('Updating popular guides with:', guideIds);
+      
+      // First, check if we have an existing record
+      const { data: existingData, error: fetchError } = await supabase
+        .from('popular_guide_selections')
+        .select('id')
+        .maybeSingle();
+        
+      if (fetchError) {
+        console.error('Error checking existing guides:', fetchError);
+        throw fetchError;
+      }
+
       const { error } = await supabase
         .from('popular_guide_selections')
         .upsert({
-          id: popularGuides?.id,
+          id: existingData?.id || undefined, // Use undefined for new records
           guide_ids: guideIds,
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id'
         });
       
       if (error) {
         console.error('Error updating popular guides:', error);
         throw error;
       }
+
+      console.log('Successfully updated guides');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['popularGuides'] });
-      queryClient.invalidateQueries({ queryKey: ['popularGuideSelection'] });
       toast({
         title: "Success",
         description: "Popular guides updated successfully.",
       });
     },
     onError: (error: Error) => {
+      console.error('Mutation error:', error);
       toast({
         title: "Error",
         description: error.message,
