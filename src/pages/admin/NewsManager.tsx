@@ -1,28 +1,16 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { NewsTable } from "@/components/admin/news/NewsTable";
 import { NewsForm } from "@/components/admin/news/NewsForm";
-
-type News = {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  author_id: string;
-  slug: string;
-  published: boolean;
-  content_type: 'news';
-  created_at?: string;
-  updated_at?: string;
-};
+import { createNewsArticle, deleteNewsArticle, updateNewsArticle, type NewsArticle } from "@/utils/newsOperations";
 
 export const NewsManager = () => {
   const [isAddingNews, setIsAddingNews] = useState(false);
-  const [editingNews, setEditingNews] = useState<News | null>(null);
+  const [editingNews, setEditingNews] = useState<NewsArticle | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -43,92 +31,7 @@ export const NewsManager = () => {
         throw error;
       }
       
-      return data.map(item => ({
-        ...item,
-        content_type: 'news' as const
-      }));
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (newNews: Omit<News, 'id' | 'author_id'>) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user.id) {
-        throw new Error('User not authenticated');
-      }
-
-      const { data, error } = await supabase
-        .from('news_articles')
-        .insert([{ ...newNews, author_id: session.user.id }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['news'] });
-      toast({
-        title: "Success",
-        description: "News article created successfully.",
-      });
-      setIsAddingNews(false);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create news article. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (updatedNews: News) => {
-      const { error } = await supabase
-        .from('news_articles')
-        .update(updatedNews)
-        .eq('id', updatedNews.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['news'] });
-      toast({
-        title: "Success",
-        description: "News article updated successfully.",
-      });
-      setEditingNews(null);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update news article. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('news_articles')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['news'] });
-      toast({
-        title: "Success",
-        description: "News article deleted successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete news article. Please try again.",
-        variant: "destructive",
-      });
+      return data as NewsArticle[];
     },
   });
 
@@ -142,13 +45,43 @@ export const NewsManager = () => {
       category: formData.get('category') as string,
       slug: formData.get('slug') as string || formData.get('title') as string,
       published: formData.get('published') === 'true',
-      content_type: 'news' as const
+      content_type: 'news' as const,
+      author_id: (await supabase.auth.getUser()).data.user?.id as string,
     };
 
     if (editingNews) {
-      updateMutation.mutate({ ...newsData, id: editingNews.id, author_id: editingNews.author_id });
+      const success = await updateNewsArticle(editingNews.id, newsData);
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: ['news'] });
+        toast({
+          title: "Success",
+          description: "News article updated successfully.",
+        });
+        setEditingNews(null);
+      }
     } else {
-      createMutation.mutate(newsData);
+      const newArticle = await createNewsArticle(newsData);
+      if (newArticle) {
+        queryClient.invalidateQueries({ queryKey: ['news'] });
+        toast({
+          title: "Success",
+          description: "News article created successfully.",
+        });
+        setIsAddingNews(false);
+      }
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this news article?')) {
+      const success = await deleteNewsArticle(id);
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: ['news'] });
+        toast({
+          title: "Success",
+          description: "News article deleted successfully.",
+        });
+      }
     }
   };
 
@@ -188,11 +121,8 @@ export const NewsManager = () => {
             setEditingNews(item);
             setIsAddingNews(false);
           }}
-          onDelete={(id) => {
-            if (window.confirm('Are you sure you want to delete this news article?')) {
-              deleteMutation.mutate(id);
-            }
-          }}
+          onDelete={handleDelete}
+          onUpdate={() => queryClient.invalidateQueries({ queryKey: ['news'] })}
         />
       )}
     </div>
