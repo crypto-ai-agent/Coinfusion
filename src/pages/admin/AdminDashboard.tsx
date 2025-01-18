@@ -4,7 +4,6 @@ import { EducationalContentManager } from "./EducationalContentManager";
 import { NewsManager } from "./NewsManager";
 import { UserProfilesManager } from "@/components/admin/UserProfilesManager";
 import { QuizManager } from "./QuizManager";
-import { PageLayoutManager } from "@/components/admin/PageLayoutManager";
 import { PopularGuidesManager } from "@/components/admin/PopularGuidesManager";
 import { PopularCoursesManager } from "@/components/admin/PopularCoursesManager";
 import { FeaturedQuizzesManager } from "@/components/admin/FeaturedQuizzesManager";
@@ -18,18 +17,14 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
         </div>
 
-        <Tabs defaultValue="layouts" className="w-full">
+        <Tabs defaultValue="education" className="w-full">
           <TabsList className="mb-8">
-            <TabsTrigger value="layouts">Page Layouts</TabsTrigger>
             <TabsTrigger value="education">Educational Content</TabsTrigger>
             <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
             <TabsTrigger value="news">News Articles</TabsTrigger>
             <TabsTrigger value="users">User Profiles</TabsTrigger>
             <TabsTrigger value="featured">Featured Content</TabsTrigger>
           </TabsList>
-          <TabsContent value="layouts">
-            <PageLayoutManager />
-          </TabsContent>
           <TabsContent value="education">
             <EducationalContentManager />
           </TabsContent>
