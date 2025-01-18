@@ -3,13 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GuideSelector } from "./GuideSelector";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 export const PopularGuidesManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
 
-  const { data: popularGuides, isLoading: isLoadingPopularGuides } = useQuery({
+  const { data: popularGuides, isLoading: isLoadingPopularGuides, error: popularGuidesError } = useQuery({
     queryKey: ['popularGuides'],
     queryFn: async () => {
       console.log('Fetching popular guides selections...');
@@ -20,11 +22,6 @@ export const PopularGuidesManager = () => {
       
       if (error) {
         console.error('Error fetching popular guides:', error);
-        toast({
-          title: "Error fetching popular guides",
-          description: error.message,
-          variant: "destructive",
-        });
         throw error;
       }
       
@@ -34,6 +31,8 @@ export const PopularGuidesManager = () => {
       }
       return data;
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const updatePopularGuidesMutation = useMutation({
@@ -75,8 +74,23 @@ export const PopularGuidesManager = () => {
     updatePopularGuidesMutation.mutate(guideIds);
   };
 
+  if (popularGuidesError) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          Error loading popular guides. Please try refreshing the page.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   if (isLoadingPopularGuides) {
-    return <div>Loading popular guides...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <ReloadIcon className="h-6 w-6 animate-spin" />
+        <span className="ml-2">Loading popular guides...</span>
+      </div>
+    );
   }
 
   return (
