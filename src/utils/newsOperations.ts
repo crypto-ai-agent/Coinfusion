@@ -10,8 +10,8 @@ export interface NewsArticle {
   slug: string;
   published: boolean;
   content_type: 'news';
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const updateNewsArticle = async (
@@ -41,7 +41,10 @@ export const createNewsArticle = async (
 ): Promise<NewsArticle | null> => {
   const { data: newArticle, error } = await supabase
     .from('news_articles')
-    .insert([data])
+    .insert([{
+      ...data,
+      content_type: 'news'
+    }])
     .select()
     .single();
 
@@ -55,7 +58,7 @@ export const createNewsArticle = async (
     return null;
   }
 
-  return newArticle;
+  return newArticle as NewsArticle;
 };
 
 export const deleteNewsArticle = async (id: string): Promise<boolean> => {

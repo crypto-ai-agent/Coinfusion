@@ -2,15 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { PublishToggle } from "./PublishToggle";
 import { format } from "date-fns";
-
-interface NewsArticle {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  published: boolean;
-  created_at: string;
-}
+import { NewsArticle } from "@/utils/newsOperations";
 
 interface NewsTableProps {
   news: NewsArticle[];

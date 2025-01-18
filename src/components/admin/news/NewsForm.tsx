@@ -1,15 +1,11 @@
 import { ContentForm } from "@/components/admin/ContentForm";
+import { NewsArticle } from "@/utils/newsOperations";
 
 interface NewsFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
   isEditing?: boolean;
-  defaultValues?: {
-    title: string;
-    content: string;
-    category: string;
-    published: boolean;
-  };
+  defaultValues?: Pick<NewsArticle, 'title' | 'content' | 'category' | 'published'>;
 }
 
 export const NewsForm = ({ onSubmit, onClose, isEditing, defaultValues }: NewsFormProps) => {
