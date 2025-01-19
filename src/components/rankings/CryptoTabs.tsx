@@ -56,10 +56,10 @@ export const CryptoTabs = ({ tokens, stablecoins, isLoading }: CryptoTabsProps) 
         ) : (
           <>
             <TabsContent value="tokens">
-              <CryptoTable data={tokens} />
+              <CryptoTable data={tokens} showWatchlistActions />
             </TabsContent>
             <TabsContent value="stablecoins">
-              <CryptoTable data={stablecoins} />
+              <CryptoTable data={stablecoins} showWatchlistActions />
             </TabsContent>
             <TabsContent value="watchlists">
               <WatchlistSection allTokens={[...tokens, ...stablecoins]} />
