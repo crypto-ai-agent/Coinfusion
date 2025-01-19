@@ -16,6 +16,7 @@ serve(async (req) => {
     const apiKey = Deno.env.get('CMC_API_KEY')
     
     if (!apiKey) {
+      console.error('CMC_API_KEY not found in environment variables')
       throw new Error('CMC_API_KEY not found')
     }
 
@@ -30,6 +31,7 @@ serve(async (req) => {
     })
 
     if (!response.ok) {
+      console.error('CoinMarketCap API error:', response.status, await response.text())
       throw new Error(`CoinMarketCap API responded with status: ${response.status}`)
     }
 
