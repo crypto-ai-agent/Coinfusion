@@ -1,7 +1,7 @@
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { DashboardFeatures } from "./navigation/DashboardFeatures";
 import { AdminSection } from "./navigation/AdminSection";
-import { UserSettings } from "./navigation/UserSettings";
+import { SettingsSection } from "./navigation/SettingsSection";
 
 export function DashboardSidebar() {
   return (
@@ -9,7 +9,7 @@ export function DashboardSidebar() {
       <SidebarContent>
         <DashboardFeatures />
         <AdminSection />
-        <UserSettings />
+        <SettingsSection />
       </SidebarContent>
     </Sidebar>
   );

@@ -9,12 +9,12 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function UserSettings() {
+export function SettingsSection() {
   const navigate = useNavigate();
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>User</SidebarGroupLabel>
+      <SidebarGroupLabel>Settings</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -23,7 +23,7 @@ export function UserSettings() {
               onClick={() => navigate('/profile')}
             >
               <Settings className="h-4 w-4" />
-              <span>Settings</span>
+              <span>Profile Settings</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
