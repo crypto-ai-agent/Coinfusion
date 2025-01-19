@@ -12,7 +12,6 @@ import {
   Key,
   Ticket,
   Users,
-  Menu,
   Shield,
 } from "lucide-react";
 import {
@@ -24,7 +23,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 const features = [
@@ -109,12 +107,6 @@ export function DashboardSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <div className="flex items-center justify-between px-4 py-2">
-          <h1 className="text-xl font-bold">Dashboard</h1>
-          <SidebarTrigger>
-            <Menu className="h-6 w-6" />
-          </SidebarTrigger>
-        </div>
         <SidebarGroup>
           <SidebarGroupLabel>Features</SidebarGroupLabel>
           <SidebarGroupContent>

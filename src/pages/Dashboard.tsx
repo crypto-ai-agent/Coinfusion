@@ -4,6 +4,8 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { LearningProgress } from "@/components/dashboard/LearningProgress";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { WatchlistDashboard } from "@/components/dashboard/WatchlistDashboard";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -73,24 +75,31 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DashboardStats 
-          totalPoints={userProgress.totalPoints}
-          currentStreak={userProgress.currentStreak}
-          completedContent={userProgress.completedContent}
-          lastActivity={userProgress.lastActivity}
-        />
-        <WatchlistDashboard />
-        <LearningProgress 
-          completedContent={userProgress.completedContent}
-          totalTopics={20} // You might want to fetch this from your educational_content table
-        />
-        <RecentActivity 
-          completedContent={userProgress.completedContent}
-        />
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <DashboardSidebar />
+        <main className="flex-1 p-6">
+          <div className="container mx-auto">
+            <DashboardStats 
+              totalPoints={userProgress.totalPoints}
+              currentStreak={userProgress.currentStreak}
+              completedContent={userProgress.completedContent}
+              lastActivity={userProgress.lastActivity}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <WatchlistDashboard />
+              <LearningProgress 
+                completedContent={userProgress.completedContent}
+                totalTopics={20}
+              />
+              <RecentActivity 
+                completedContent={userProgress.completedContent}
+              />
+            </div>
+          </div>
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
