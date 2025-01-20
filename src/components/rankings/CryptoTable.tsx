@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, List } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PriceChange } from "@/components/shared/PriceChange";
 import { useToast } from "@/components/ui/use-toast";
@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -19,6 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import type { CoinData } from "@/utils/types/crypto";
 import { useState, useEffect } from "react";
 
@@ -33,11 +37,14 @@ interface Watchlist {
   name: string;
 }
 
+interface CoinWatchlist extends Watchlist {
+  coin_id: string;
+}
+
 export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId, showWatchlistActions = false }: CryptoTableProps) => {
-  const [addedCoins, setAddedCoins] = useState<string[]>([]);
+  const [coinWatchlists, setCoinWatchlists] = useState<{ [key: string]: CoinWatchlist[] }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [watchlists, setWatchlists] = useState<Watchlist[]>([]);
-  const [selectedWatchlistId, setSelectedWatchlistId] = useState<string | null>(propSelectedWatchlistId || null);
   const [showWatchlistDialog, setShowWatchlistDialog] = useState(false);
   const [coinToAdd, setCoinToAdd] = useState<string | null>(null);
   const { toast } = useToast();
@@ -45,11 +52,9 @@ export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId
   useEffect(() => {
     if (showWatchlistActions) {
       fetchWatchlists();
+      fetchAllWatchlistItems();
     }
-    if (selectedWatchlistId) {
-      fetchWatchlistItems();
-    }
-  }, [selectedWatchlistId, showWatchlistActions]);
+  }, [showWatchlistActions]);
 
   const fetchWatchlists = async () => {
     const { data: watchlistsData, error } = await supabase
@@ -69,13 +74,16 @@ export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId
     setWatchlists(watchlistsData);
   };
 
-  const fetchWatchlistItems = async () => {
-    if (!selectedWatchlistId) return;
-
-    const { data: watchlistItems, error } = await supabase
+  const fetchAllWatchlistItems = async () => {
+    const { data: items, error } = await supabase
       .from("watchlist_items")
-      .select("coin_id")
-      .eq("watchlist_id", selectedWatchlistId);
+      .select(`
+        coin_id,
+        watchlist:watchlists (
+          id,
+          name
+        )
+      `);
 
     if (error) {
       toast({
@@ -86,7 +94,19 @@ export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId
       return;
     }
 
-    setAddedCoins(watchlistItems.map(item => item.coin_id));
+    const groupedItems: { [key: string]: CoinWatchlist[] } = {};
+    items.forEach((item: any) => {
+      if (!groupedItems[item.coin_id]) {
+        groupedItems[item.coin_id] = [];
+      }
+      groupedItems[item.coin_id].push({
+        id: item.watchlist.id,
+        name: item.watchlist.name,
+        coin_id: item.coin_id,
+      });
+    });
+
+    setCoinWatchlists(groupedItems);
   };
 
   const handleAddToWatchlist = (coinId: string) => {
@@ -120,7 +140,7 @@ export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId
         variant: "destructive",
       });
     } else {
-      setAddedCoins(prev => [...prev, coinToAdd]);
+      fetchAllWatchlistItems(); // Refresh the lists
       toast({
         title: "Added to watchlist",
         description: "Cryptocurrency has been added to your watchlist",
@@ -189,22 +209,44 @@ export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId
               </TableCell>
               {showWatchlistActions && (
                 <TableCell>
-                  {addedCoins.includes(crypto.id) ? (
-                    <Button variant="ghost" disabled className="w-full">
-                      <Check className="h-4 w-4 mr-2" />
-                      Added
-                    </Button>
-                  ) : (
+                  <div className="flex items-center gap-2">
                     <Button 
                       variant="outline" 
                       onClick={() => handleAddToWatchlist(crypto.id)}
                       disabled={isLoading}
-                      className="w-full"
+                      size="sm"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="h-4 w-4 mr-1" />
                       Add
                     </Button>
-                  )}
+                    
+                    {coinWatchlists[crypto.id]?.length > 0 && (
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <Button variant="ghost" size="sm" className="text-sm text-gray-500">
+                            <List className="h-4 w-4 mr-1" />
+                            In {coinWatchlists[crypto.id].length} list{coinWatchlists[crypto.id].length > 1 ? 's' : ''}
+                          </Button>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-64">
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold">Current Lists</h4>
+                            <div className="space-y-1">
+                              {coinWatchlists[crypto.id].map((list) => (
+                                <Link
+                                  key={list.id}
+                                  to={`/rankings?tab=watchlists&list=${list.id}`}
+                                  className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  {list.name}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    )}
+                  </div>
                 </TableCell>
               )}
             </TableRow>
