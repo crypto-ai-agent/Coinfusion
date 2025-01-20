@@ -1,28 +1,12 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Check, List } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PriceChange } from "@/components/shared/PriceChange";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import { WatchlistDialog } from "./watchlist/WatchlistDialog";
+import { WatchlistIndicator } from "./watchlist/WatchlistIndicator";
 import type { CoinData } from "@/utils/types/crypto";
 import { useState, useEffect } from "react";
 
@@ -41,9 +25,12 @@ interface CoinWatchlist extends Watchlist {
   coin_id: string;
 }
 
-export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId, showWatchlistActions = false }: CryptoTableProps) => {
+export const CryptoTable = ({ 
+  data, 
+  selectedWatchlistId: propSelectedWatchlistId, 
+  showWatchlistActions = false 
+}: CryptoTableProps) => {
   const [coinWatchlists, setCoinWatchlists] = useState<{ [key: string]: CoinWatchlist[] }>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [watchlists, setWatchlists] = useState<Watchlist[]>([]);
   const [showWatchlistDialog, setShowWatchlistDialog] = useState(false);
   const [coinToAdd, setCoinToAdd] = useState<string | null>(null);
@@ -122,35 +109,6 @@ export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId
     setShowWatchlistDialog(true);
   };
 
-  const addToWatchlist = async (watchlistId: string) => {
-    if (!coinToAdd) return;
-
-    setIsLoading(true);
-    const { error } = await supabase
-      .from("watchlist_items")
-      .insert({
-        watchlist_id: watchlistId,
-        coin_id: coinToAdd,
-      });
-
-    if (error) {
-      toast({
-        title: "Error adding to watchlist",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      fetchAllWatchlistItems(); // Refresh the lists
-      toast({
-        title: "Added to watchlist",
-        description: "Cryptocurrency has been added to your watchlist",
-      });
-      setShowWatchlistDialog(false);
-    }
-    setIsLoading(false);
-    setCoinToAdd(null);
-  };
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -213,39 +171,15 @@ export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId
                     <Button 
                       variant="outline" 
                       onClick={() => handleAddToWatchlist(crypto.id)}
-                      disabled={isLoading}
                       size="sm"
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       Add
                     </Button>
                     
-                    {coinWatchlists[crypto.id]?.length > 0 && (
-                      <HoverCard>
-                        <HoverCardTrigger asChild>
-                          <Button variant="ghost" size="sm" className="text-sm text-gray-500">
-                            <List className="h-4 w-4 mr-1" />
-                            In {coinWatchlists[crypto.id].length} list{coinWatchlists[crypto.id].length > 1 ? 's' : ''}
-                          </Button>
-                        </HoverCardTrigger>
-                        <HoverCardContent className="w-64">
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-semibold">Current Lists</h4>
-                            <div className="space-y-1">
-                              {coinWatchlists[crypto.id].map((list) => (
-                                <Link
-                                  key={list.id}
-                                  to={`/rankings?tab=watchlists&list=${list.id}`}
-                                  className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                                >
-                                  {list.name}
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        </HoverCardContent>
-                      </HoverCard>
-                    )}
+                    <WatchlistIndicator 
+                      watchlists={coinWatchlists[crypto.id] || []}
+                    />
                   </div>
                 </TableCell>
               )}
@@ -254,27 +188,13 @@ export const CryptoTable = ({ data, selectedWatchlistId: propSelectedWatchlistId
         </TableBody>
       </Table>
 
-      <Dialog open={showWatchlistDialog} onOpenChange={setShowWatchlistDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Watchlist</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Select onValueChange={addToWatchlist}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a watchlist" />
-              </SelectTrigger>
-              <SelectContent>
-                {watchlists.map((watchlist) => (
-                  <SelectItem key={watchlist.id} value={watchlist.id}>
-                    {watchlist.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <WatchlistDialog
+        open={showWatchlistDialog}
+        onOpenChange={setShowWatchlistDialog}
+        coinId={coinToAdd}
+        watchlists={watchlists}
+        onSuccess={fetchAllWatchlistItems}
+      />
     </>
   );
 };
