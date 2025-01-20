@@ -58,10 +58,21 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchWatchlists();
+  }, []);
+
+  useEffect(() => {
+    if (selectedWatchlist) {
+      fetchWatchlistItems(selectedWatchlist);
+    }
+  }, [selectedWatchlist]);
+
   const fetchWatchlists = async () => {
     const { data: session } = await supabase.auth.getSession();
     
     if (!session?.session?.user) {
+      navigate("/auth");
       return;
     }
 
@@ -143,25 +154,15 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
     await fetchWatchlists();
   };
 
+  const handleWatchlistChange = (watchlistId: string) => {
+    setSelectedWatchlist(watchlistId);
+  };
+
   const filteredTokens = watchlistItems.length > 0
     ? allTokens.filter(token => 
         watchlistItems.some(item => item.coin_id === token.id)
       )
     : [];
-
-  useEffect(() => {
-    fetchWatchlists();
-  }, []);
-
-  useEffect(() => {
-    if (selectedWatchlist) {
-      fetchWatchlistItems(selectedWatchlist);
-    }
-  }, [selectedWatchlist]);
-
-  const handleWatchlistChange = (watchlistId: string) => {
-    setSelectedWatchlist(watchlistId);
-  };
 
   const selectedWatchlistData = watchlists.find(w => w.id === selectedWatchlist);
 
@@ -239,12 +240,24 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
         </Dialog>
       </div>
 
-      {!selectedWatchlist ? (
+      {watchlists.length === 0 ? (
         <div className="text-center py-8">
           <List className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Watchlist Selected</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Watchlists Created</h3>
           <p className="text-sm text-gray-500 mb-4">
-            Select a watchlist or create a new one to get started
+            Create your first watchlist to start tracking cryptocurrencies
+          </p>
+          <Button onClick={() => setIsCreatingList(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Your First List
+          </Button>
+        </div>
+      ) : !selectedWatchlist ? (
+        <div className="text-center py-8">
+          <List className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Watchlist</h3>
+          <p className="text-sm text-gray-500">
+            Choose a watchlist from the dropdown above to view its contents
           </p>
         </div>
       ) : watchlistItems.length === 0 ? (
@@ -256,7 +269,7 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
           </p>
         </div>
       ) : (
-        <CryptoTable data={filteredTokens} />
+        <CryptoTable data={filteredTokens} selectedWatchlistId={selectedWatchlist} />
       )}
     </div>
   );
