@@ -13,6 +13,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import { EducationalContentManager } from "@/pages/admin/EducationalContentManager";
 import { NewsManager } from "@/pages/admin/NewsManager";
 import { QuizManager } from "@/pages/admin/QuizManager";
+import WatchlistsPage from "@/pages/dashboard/Watchlists";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/watchlists" element={<WatchlistsPage />} />
         <Route path="/education" element={<Education />} />
         <Route path="/rankings" element={<Rankings />} />
         <Route path="/news" element={<News />} />
