@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CryptoTable } from "./CryptoTable";
+import { WatchlistTable } from "./watchlist/WatchlistTable";
 import {
   Dialog,
   DialogContent,
@@ -269,7 +269,11 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
           </p>
         </div>
       ) : (
-        <CryptoTable data={filteredTokens} selectedWatchlistId={selectedWatchlist} />
+        <WatchlistTable 
+          data={filteredTokens} 
+          watchlistId={selectedWatchlist} 
+          onUpdate={() => fetchWatchlistItems(selectedWatchlist)}
+        />
       )}
     </div>
   );
