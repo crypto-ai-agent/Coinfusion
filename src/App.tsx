@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Toaster } from "@/components/ui/toaster";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
@@ -16,6 +19,52 @@ import { QuizManager } from "@/pages/admin/QuizManager";
 import WatchlistsPage from "@/pages/dashboard/Watchlists";
 
 function App() {
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Initialize Supabase auth state
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.log("No active session");
+        }
+      } catch (error) {
+        console.error("Error checking auth session:", error);
+        toast({
+          title: "Authentication Error",
+          description: "There was a problem connecting to the authentication service. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    initAuth();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        console.log('User signed in:', session?.user?.email);
+        toast({
+          title: "Signed in successfully",
+          duration: 2000,
+        });
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        toast({
+          title: "Signed out successfully",
+          duration: 2000,
+        });
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [toast]);
+
   return (
     <Router>
       <Navigation />
