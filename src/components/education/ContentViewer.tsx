@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, CheckCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { QuizTaking } from "@/components/quiz/QuizTaking";
 
 export const ContentViewer = () => {
   const { id } = useParams();
@@ -15,10 +16,10 @@ export const ContentViewer = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [readingProgress, setReadingProgress] = useState(0);
+  const [showQuiz, setShowQuiz] = useState(false);
 
-  // Fetch the content and associated quiz
   const { data: content, isLoading: contentLoading } = useQuery({
-    queryKey: ['educational-content', id],
+    queryKey: ['guides', id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('guides')
@@ -38,7 +39,6 @@ export const ContentViewer = () => {
     },
   });
 
-  // Fetch user progress
   const { data: userProgress } = useQuery({
     queryKey: ['user-progress'],
     queryFn: async () => {
@@ -56,7 +56,6 @@ export const ContentViewer = () => {
     },
   });
 
-  // Track reading progress
   useEffect(() => {
     const handleScroll = () => {
       const windowHeight = window.innerHeight;
@@ -70,7 +69,6 @@ export const ContentViewer = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Mark content as completed
   const markAsCompletedMutation = useMutation({
     mutationFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -107,6 +105,15 @@ export const ContentViewer = () => {
     },
   });
 
+  const handleQuizComplete = (score: number) => {
+    setShowQuiz(false);
+    toast({
+      title: "Quiz Completed",
+      description: `You scored ${score}%!`,
+    });
+    markAsCompletedMutation.mutate();
+  };
+
   if (contentLoading) {
     return (
       <div className="max-w-4xl mx-auto p-8">
@@ -127,6 +134,19 @@ export const ContentViewer = () => {
     return (
       <div className="max-w-4xl mx-auto p-8">
         <p className="text-center text-gray-600">Content not found</p>
+      </div>
+    );
+  }
+
+  if (showQuiz && content.quizzes?.[0]) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-20">
+        <div className="max-w-4xl mx-auto px-4">
+          <QuizTaking
+            quizId={content.quizzes[0].id}
+            onComplete={handleQuizComplete}
+          />
+        </div>
       </div>
     );
   }
@@ -180,8 +200,7 @@ export const ContentViewer = () => {
             <p className="text-lg text-gray-600 mb-8">{content.description}</p>
             
             <div className="mt-8 space-y-6">
-              {/* Content sections would go here */}
-              <p>{content.content || "Content coming soon..."}</p>
+              {content.content}
             </div>
 
             <div className="mt-12 flex justify-between items-center pt-6 border-t">
@@ -198,7 +217,7 @@ export const ContentViewer = () => {
                 </Button>
               ) : hasQuiz ? (
                 <Button
-                  onClick={() => navigate(`/quiz/${content.quizzes[0].id}`)}
+                  onClick={() => setShowQuiz(true)}
                   className="w-full sm:w-auto"
                 >
                   <Award className="mr-2 h-4 w-4" />
