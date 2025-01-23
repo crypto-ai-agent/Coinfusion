@@ -34,12 +34,7 @@ export default function App() {
         <Route path="/education/content/:id" element={<ContentViewer />} />
         <Route 
           path="/quiz/:id" 
-          element={
-            <QuizTaking 
-              quizId="" 
-              onComplete={handleQuizComplete}
-            />
-          } 
+          element={<QuizTaking onComplete={handleQuizComplete} />} 
         />
         
         <Route element={<PrivateRoute />}>

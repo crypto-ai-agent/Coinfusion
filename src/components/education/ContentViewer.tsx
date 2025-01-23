@@ -113,10 +113,7 @@ export const ContentViewer = () => {
     return (
       <div className="min-h-screen bg-gray-50 py-20">
         <div className="max-w-4xl mx-auto px-4">
-          <QuizTaking
-            quizId={content.quizzes[0].id}
-            onComplete={handleQuizComplete}
-          />
+          <QuizTaking onComplete={handleQuizComplete} />
         </div>
       </div>
     );
