@@ -3,10 +3,10 @@ import { useState } from "react";
 import { useContentViewer } from "@/hooks/useContentViewer";
 import { QuizTaking } from "@/components/quiz/QuizTaking";
 import { ContentHeader } from "./content/ContentHeader";
-import { ReadingProgress } from "./content/ReadingProgress";
 import { ContentActions } from "./content/ContentActions";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMarkAsCompleted } from "@/hooks/useMarkAsCompleted";
+import { ReadingProgressBar } from "./content/ReadingProgressBar";
 
 export const ContentViewer = () => {
   const { id } = useParams();
@@ -61,7 +61,7 @@ export const ContentViewer = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
-      <ReadingProgress progress={readingProgress} />
+      <ReadingProgressBar value={readingProgress} />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <ContentHeader

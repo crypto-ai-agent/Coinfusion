@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { QuizQuestion } from "./QuizQuestion";
 import { QuizFeedback } from "./QuizFeedback";
 import { QuizProgress } from "./QuizProgress";
 import { QuizResults } from "./QuizResults";
 import { useQuizProgress } from "@/hooks/useQuizProgress";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuizTakingProps {
   quizId: string;
@@ -18,10 +20,11 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showFeedback, setShowFeedback] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const { toast } = useToast();
   
   const quizProgress = useQuizProgress();
 
-  const { data: quiz } = useQuery({
+  const { data: quiz, isLoading } = useQuery({
     queryKey: ['quiz', quizId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -56,7 +59,7 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
     } else {
       const score = calculateScore();
       quizProgress.mutate({
-        userId: 'user-id', // Replace with actual user ID
+        userId: 'user-id',
         quizId: quiz.id,
         score,
         answers,
@@ -93,14 +96,14 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
       <CardHeader>
         <CardTitle>{quiz.title}</CardTitle>
         <QuizProgress
-          currentQuestion={currentQuestion}
+          currentQuestion={currentQuestion + 1}
           totalQuestions={quiz.quiz_questions.length}
         />
       </CardHeader>
       <CardContent className="space-y-6">
         <QuizQuestion
           question={currentQuestionData.question}
-          options={currentQuestionData.options as string[]}
+          options={currentQuestionData.options}
           selectedAnswer={answers[currentQuestionData.id] || ''}
           onAnswerSelect={handleAnswer}
         />
