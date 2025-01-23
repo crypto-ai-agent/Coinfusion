@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuizQuestion } from "./QuizQuestion";
 import { QuizFeedback } from "./QuizFeedback";
+import { QuizProgress } from "./QuizProgress";
+import { QuizResults } from "./QuizResults";
+import { useQuizProgress } from "@/hooks/useQuizProgress";
 
 interface QuizTakingProps {
   quizId: string;
@@ -16,7 +17,9 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showFeedback, setShowFeedback] = useState(false);
-  const { toast } = useToast();
+  const [showResults, setShowResults] = useState(false);
+  
+  const quizProgress = useQuizProgress();
 
   const { data: quiz } = useQuery({
     queryKey: ['quiz', quizId],
@@ -35,40 +38,11 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
     },
   });
 
-  const submitAttemptMutation = useMutation({
-    mutationFn: async (score: number) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
-
-      const { error } = await supabase
-        .from('quiz_attempts')
-        .insert([{
-          quiz_id: quizId,
-          user_id: session.user.id,
-          score,
-          answers,
-        }]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Quiz completed!",
-        description: "Your answers have been submitted successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to submit quiz answers.",
-        variant: "destructive",
-      });
-    },
-  });
+  if (!quiz || !quiz.quiz_questions) {
+    return <div>Loading quiz...</div>;
+  }
 
   const handleAnswer = (value: string) => {
-    if (!quiz?.quiz_questions) return;
-    
     setAnswers({
       ...answers,
       [quiz.quiz_questions[currentQuestion].id]: value,
@@ -76,21 +50,22 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
   };
 
   const handleNext = () => {
-    if (!quiz?.quiz_questions) return;
-
     if (currentQuestion < quiz.quiz_questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setShowFeedback(false);
     } else {
       const score = calculateScore();
-      submitAttemptMutation.mutate(score);
-      onComplete(score);
+      quizProgress.mutate({
+        userId: 'user-id', // Replace with actual user ID
+        quizId: quiz.id,
+        score,
+        answers,
+      });
+      setShowResults(true);
     }
   };
 
   const calculateScore = () => {
-    if (!quiz?.quiz_questions) return 0;
-    
     const totalQuestions = quiz.quiz_questions.length;
     const correctAnswers = quiz.quiz_questions.reduce((count, question) => {
       return count + (answers[question.id] === question.correct_answer ? 1 : 0);
@@ -99,19 +74,28 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
     return Math.round((correctAnswers / totalQuestions) * 100);
   };
 
-  if (!quiz || !quiz.quiz_questions) {
-    return <div>Loading quiz...</div>;
+  if (showResults) {
+    return (
+      <Card>
+        <QuizResults
+          score={calculateScore()}
+          totalQuestions={quiz.quiz_questions.length}
+          onFinish={() => onComplete(calculateScore())}
+        />
+      </Card>
+    );
   }
 
   const currentQuestionData = quiz.quiz_questions[currentQuestion];
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card>
       <CardHeader>
         <CardTitle>{quiz.title}</CardTitle>
-        <CardDescription>
-          Question {currentQuestion + 1} of {quiz.quiz_questions.length}
-        </CardDescription>
+        <QuizProgress
+          currentQuestion={currentQuestion}
+          totalQuestions={quiz.quiz_questions.length}
+        />
       </CardHeader>
       <CardContent className="space-y-6">
         <QuizQuestion
