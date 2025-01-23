@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useParams } from "react-router-dom";
 
 interface QuizTakingProps {
-  quizId: string;
   onComplete: (score: number) => void;
 }
 
@@ -69,14 +68,14 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
       setShowFeedback(false);
     } else {
       const score = calculateScore();
-      const { data: { user } } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession();
       
-      if (user) {
+      if (sessionData?.session?.user) {
         await quizProgress.mutateAsync({
           quizId: quiz.id,
           score,
           answers,
-          userId: user.id,
+          userId: sessionData.session.user.id,
         });
       }
       setShowResults(true);
