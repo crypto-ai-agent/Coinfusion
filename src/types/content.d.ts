@@ -30,3 +30,9 @@ export interface Quiz {
   };
   is_expert_quiz?: boolean;
 }
+
+export interface QuizQuestionListProps {
+  quizId: string;
+  onEdit: (questionId: string) => void;
+  onDelete: (questionId: string) => void;
+}

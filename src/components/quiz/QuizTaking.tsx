@@ -67,12 +67,16 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
       setShowFeedback(false);
     } else {
       const score = calculateScore();
-      quizProgress.mutate({
-        quizId: quiz.id,
-        score,
-        answers,
-        userId: (supabase.auth.getUser()).data.user?.id || '',
-      });
+      const { data: { user } } = supabase.auth.getUser();
+      
+      if (user) {
+        quizProgress.mutate({
+          quizId: quiz.id,
+          score,
+          answers,
+          userId: user.id,
+        });
+      }
       setShowResults(true);
     }
   };
