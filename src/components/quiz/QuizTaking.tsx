@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { QuizQuestion } from "./QuizQuestion";
+import { QuizFeedback } from "./QuizFeedback";
 
 interface QuizTakingProps {
   quizId: string;
@@ -114,37 +114,23 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">{currentQuestionData.question}</h3>
-          
-          <RadioGroup
-            value={answers[currentQuestionData.id]}
-            onValueChange={handleAnswer}
-          >
-            {(currentQuestionData.options as string[]).map((option, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <RadioGroupItem value={option} id={`option-${index}`} />
-                <Label htmlFor={`option-${index}`}>{option}</Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </div>
+        <QuizQuestion
+          question={currentQuestionData.question}
+          options={currentQuestionData.options as string[]}
+          selectedAnswer={answers[currentQuestionData.id] || ''}
+          onAnswerSelect={handleAnswer}
+        />
 
         {showFeedback && (
-          <div className={`p-4 rounded-lg ${
-            answers[currentQuestionData.id] === currentQuestionData.correct_answer
-              ? 'bg-green-50 text-green-700'
-              : 'bg-red-50 text-red-700'
-          }`}>
-            <p className="font-medium">
-              {answers[currentQuestionData.id] === currentQuestionData.correct_answer
-                ? currentQuestionData.feedback_correct
-                : currentQuestionData.feedback_incorrect}
-            </p>
-            {currentQuestionData.explanation && (
-              <p className="mt-2 text-sm">{currentQuestionData.explanation}</p>
-            )}
-          </div>
+          <QuizFeedback
+            isCorrect={answers[currentQuestionData.id] === currentQuestionData.correct_answer}
+            feedbackText={
+              answers[currentQuestionData.id] === currentQuestionData.correct_answer
+                ? currentQuestionData.feedback_correct || "Correct!"
+                : currentQuestionData.feedback_incorrect || "Incorrect"
+            }
+            explanation={currentQuestionData.explanation}
+          />
         )}
 
         <div className="flex justify-between">

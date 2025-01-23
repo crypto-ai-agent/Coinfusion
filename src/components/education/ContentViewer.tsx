@@ -1,22 +1,21 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, CheckCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Progress } from "@/components/ui/progress";
 import { QuizTaking } from "@/components/quiz/QuizTaking";
+import { ContentHeader } from "./content/ContentHeader";
+import { ReadingProgress } from "./content/ReadingProgress";
+import { ContentActions } from "./content/ContentActions";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const ContentViewer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [readingProgress, setReadingProgress] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
 
   const { data: content, isLoading: contentLoading } = useQuery({
     queryKey: ['guides', id],
@@ -55,19 +54,6 @@ export const ContentViewer = () => {
       return data;
     },
   });
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const scrollTop = window.scrollY;
-      const progress = (scrollTop / (documentHeight - windowHeight)) * 100;
-      setReadingProgress(Math.min(progress, 100));
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const markAsCompletedMutation = useMutation({
     mutationFn: async () => {
@@ -156,83 +142,34 @@ export const ContentViewer = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
-      <div className="fixed top-16 left-0 right-0 h-1 bg-gray-200 z-50">
-        <div 
-          className="h-full bg-primary transition-all duration-300"
-          style={{ width: `${readingProgress}%` }}
-        />
-      </div>
+      <ReadingProgress />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
-        <Button
-          variant="ghost"
-          className="mb-4"
-          onClick={() => navigate("/education")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Education Hub
-        </Button>
+        <ContentHeader
+          title={content.title}
+          description={content.description}
+          difficulty={content.difficulty}
+          points={content.points || 0}
+          readTime={content.read_time}
+          isCompleted={isCompleted}
+        />
 
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <CardTitle className="text-3xl font-bold text-primary">
-                  {content.title}
-                </CardTitle>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="secondary">{content.difficulty}</Badge>
-                  <Badge variant="outline">{content.points} points</Badge>
-                  {content.read_time && (
-                    <Badge variant="outline">{content.read_time}</Badge>
-                  )}
-                </div>
-              </div>
-              {isCompleted && (
-                <Badge variant="outline" className="bg-green-100 text-green-800">
-                  Completed
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-
-          <CardContent className="prose max-w-none">
+        <Card className="mt-8">
+          <CardContent className="prose max-w-none pt-6">
             <p className="text-lg text-gray-600 mb-8">{content.description}</p>
             
             <div className="mt-8 space-y-6">
               {content.content}
             </div>
 
-            <div className="mt-12 flex justify-between items-center pt-6 border-t">
-              {!isCompleted ? (
-                <Button
-                  onClick={() => markAsCompletedMutation.mutate()}
-                  disabled={readingProgress < 90}
-                  className="w-full sm:w-auto"
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  {readingProgress < 90 
-                    ? "Read more to complete" 
-                    : "Mark as Completed"}
-                </Button>
-              ) : hasQuiz ? (
-                <Button
-                  onClick={() => setShowQuiz(true)}
-                  className="w-full sm:w-auto"
-                >
-                  <Award className="mr-2 h-4 w-4" />
-                  Take Quiz
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => navigate("/education")}
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  Back to Education Hub
-                </Button>
-              )}
-            </div>
+            <ContentActions
+              isCompleted={isCompleted}
+              hasQuiz={hasQuiz}
+              readingProgress={readingProgress}
+              onComplete={() => markAsCompletedMutation.mutate()}
+              onStartQuiz={() => setShowQuiz(true)}
+              onBackToHub={() => navigate("/education")}
+            />
           </CardContent>
         </Card>
       </div>
