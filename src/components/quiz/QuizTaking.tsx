@@ -53,13 +53,21 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
   };
 
   const handleNext = () => {
+    if (!answers[quiz.quiz_questions[currentQuestion].id]) {
+      toast({
+        title: "Please select an answer",
+        description: "You must select an answer before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (currentQuestion < quiz.quiz_questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setShowFeedback(false);
     } else {
       const score = calculateScore();
       quizProgress.mutate({
-        userId: 'user-id',
         quizId: quiz.id,
         score,
         answers,
@@ -90,20 +98,23 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
   }
 
   const currentQuestionData = quiz.quiz_questions[currentQuestion];
+  const options = Array.isArray(currentQuestionData.options) 
+    ? currentQuestionData.options 
+    : JSON.parse(currentQuestionData.options as string);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>{quiz.title}</CardTitle>
         <QuizProgress
-          currentQuestion={currentQuestion + 1}
+          currentQuestion={currentQuestion}
           totalQuestions={quiz.quiz_questions.length}
         />
       </CardHeader>
       <CardContent className="space-y-6">
         <QuizQuestion
           question={currentQuestionData.question}
-          options={currentQuestionData.options}
+          options={options}
           selectedAnswer={answers[currentQuestionData.id] || ''}
           onAnswerSelect={handleAnswer}
         />

@@ -1,8 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, MoveUp, MoveDown } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { QuizQuestionForm } from "../QuizQuestionForm";
 
 interface QuizQuestionListProps {
   quizId: string;
@@ -11,6 +19,10 @@ interface QuizQuestionListProps {
 }
 
 export const QuizQuestionList = ({ quizId, onEdit, onDelete }: QuizQuestionListProps) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [editingQuestion, setEditingQuestion] = useState<any>(null);
+
   const { data: questions, isLoading, refetch } = useQuery({
     queryKey: ['quiz-questions', quizId],
     queryFn: async () => {
@@ -22,6 +34,32 @@ export const QuizQuestionList = ({ quizId, onEdit, onDelete }: QuizQuestionListP
       
       if (error) throw error;
       return data;
+    },
+  });
+
+  const updateQuestionMutation = useMutation({
+    mutationFn: async (updatedQuestion: any) => {
+      const { error } = await supabase
+        .from('quiz_questions')
+        .update(updatedQuestion)
+        .eq('id', updatedQuestion.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quiz-questions', quizId] });
+      toast({
+        title: "Success",
+        description: "Question updated successfully",
+      });
+      setEditingQuestion(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update question",
+        variant: "destructive",
+      });
     },
   });
 
@@ -52,6 +90,10 @@ export const QuizQuestionList = ({ quizId, onEdit, onDelete }: QuizQuestionListP
       
       refetch();
     }
+  };
+
+  const handleEditComplete = (updatedQuestion: any) => {
+    updateQuestionMutation.mutate(updatedQuestion);
   };
 
   if (isLoading) {
@@ -86,7 +128,7 @@ export const QuizQuestionList = ({ quizId, onEdit, onDelete }: QuizQuestionListP
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => onEdit(question.id)}
+                onClick={() => setEditingQuestion(question)}
               >
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -102,7 +144,7 @@ export const QuizQuestionList = ({ quizId, onEdit, onDelete }: QuizQuestionListP
           <CardContent>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Options: {(question.options as string[]).join(', ')}
+                Options: {Array.isArray(question.options) ? question.options.join(', ') : JSON.stringify(question.options)}
               </p>
               <p className="text-sm text-muted-foreground">
                 Correct Answer: {question.correct_answer}
@@ -111,6 +153,23 @@ export const QuizQuestionList = ({ quizId, onEdit, onDelete }: QuizQuestionListP
           </CardContent>
         </Card>
       ))}
+
+      {editingQuestion && (
+        <Dialog open={!!editingQuestion} onOpenChange={() => setEditingQuestion(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Question</DialogTitle>
+            </DialogHeader>
+            <QuizQuestionForm
+              quizId={quizId}
+              onClose={() => setEditingQuestion(null)}
+              onComplete={handleEditComplete}
+              defaultValues={editingQuestion}
+              isEditing={true}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
-}
+};
