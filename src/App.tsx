@@ -13,8 +13,16 @@ import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { AdminRoute } from "@/components/AdminRoute";
+import { useNavigate } from "react-router-dom";
 
 export default function App() {
+  const navigate = useNavigate();
+
+  const handleQuizComplete = async (score: number) => {
+    // After quiz completion, navigate back to education
+    navigate("/education");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -24,7 +32,15 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/education" element={<Education />} />
         <Route path="/education/content/:id" element={<ContentViewer />} />
-        <Route path="/quiz/:id" element={<QuizTaking quizId="" onComplete={() => {}} />} />
+        <Route 
+          path="/quiz/:id" 
+          element={
+            <QuizTaking 
+              quizId="" 
+              onComplete={handleQuizComplete}
+            />
+          } 
+        />
         
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />

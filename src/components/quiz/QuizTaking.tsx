@@ -9,13 +9,15 @@ import { QuizProgress } from "./QuizProgress";
 import { QuizResults } from "./QuizResults";
 import { useQuizProgress } from "@/hooks/useQuizProgress";
 import { useToast } from "@/hooks/use-toast";
+import { useParams } from "react-router-dom";
 
 interface QuizTakingProps {
   quizId: string;
   onComplete: (score: number) => void;
 }
 
-export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
+export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
+  const { id: routeQuizId } = useParams();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showFeedback, setShowFeedback] = useState(false);
@@ -25,7 +27,7 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
   const quizProgress = useQuizProgress();
 
   const { data: quiz, isLoading } = useQuery({
-    queryKey: ['quiz', quizId],
+    queryKey: ['quiz', routeQuizId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('quizzes')
@@ -33,7 +35,7 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
           *,
           quiz_questions (*)
         `)
-        .eq('id', quizId)
+        .eq('id', routeQuizId)
         .single();
       
       if (error) throw error;
@@ -41,7 +43,7 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
     },
   });
 
-  if (!quiz || !quiz.quiz_questions) {
+  if (isLoading || !quiz || !quiz.quiz_questions) {
     return <div>Loading quiz...</div>;
   }
 
@@ -52,7 +54,7 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!answers[quiz.quiz_questions[currentQuestion].id]) {
       toast({
         title: "Please select an answer",
@@ -67,10 +69,10 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
       setShowFeedback(false);
     } else {
       const score = calculateScore();
-      const { data: { user } } = supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getSession();
       
       if (user) {
-        quizProgress.mutate({
+        await quizProgress.mutateAsync({
           quizId: quiz.id,
           score,
           answers,

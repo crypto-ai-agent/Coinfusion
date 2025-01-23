@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { QuizQuestionForm } from "../QuizQuestionForm";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -11,7 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { QuizQuestionListProps } from "@/types/content";
+import { QuizQuestionForm } from "../QuizQuestionForm";
+
+interface QuizQuestionListProps {
+  quizId: string;
+  onEdit: (questionId: string) => void;
+  onDelete: (questionId: string) => void;
+}
 
 export const QuizQuestionList = ({ quizId, onEdit, onDelete }: QuizQuestionListProps) => {
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
@@ -31,9 +36,9 @@ export const QuizQuestionList = ({ quizId, onEdit, onDelete }: QuizQuestionListP
     },
   });
 
-  const handleEditComplete = (updatedQuestion: any) => {
+  const handleEditComplete = () => {
     setEditingQuestion(null);
-    onEdit(updatedQuestion.id);
+    onEdit(editingQuestion.id);
   };
 
   if (isLoading) {
