@@ -71,6 +71,7 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
         quizId: quiz.id,
         score,
         answers,
+        userId: (supabase.auth.getUser()).data.user?.id || '',
       });
       setShowResults(true);
     }

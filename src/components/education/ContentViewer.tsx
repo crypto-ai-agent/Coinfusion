@@ -129,7 +129,7 @@ export const ContentViewer = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <ContentHeader
           title={content.title}
-          description={content.description || ''}
+          description={content.content.substring(0, 150) + '...'}
           difficulty="intermediate"
           points={content.quizzes?.[0]?.points || 0}
           readTime="5 min"
