@@ -3,7 +3,8 @@ import {
   BookOpen, 
   FileQuestion, 
   Newspaper, 
-  LayoutDashboard 
+  LayoutDashboard,
+  Users
 } from "lucide-react";
 
 export const AdminSection = () => {
@@ -31,6 +32,11 @@ export const AdminSection = () => {
       href: "/admin/news",
       icon: Newspaper,
     },
+    {
+      name: "User Profiles",
+      href: "/admin/users",
+      icon: Users,
+    }
   ];
 
   return (
