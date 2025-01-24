@@ -7,9 +7,18 @@ import { UserMenu } from "./navigation/UserMenu";
 import { useToast } from "@/hooks/use-toast";
 import { MobileMenu } from "./navigation/MobileMenu";
 import { DesktopMenu } from "./navigation/DesktopMenu";
+import { NavigationItem } from "./navigation/types";
+
+const navItems: NavigationItem[] = [
+  { name: "Home", href: "/" },
+  { name: "Rankings", href: "/rankings" },
+  { name: "Education", href: "/education" },
+  { name: "News", href: "/news" },
+];
 
 export const Navigation = () => {
   const [session, setSession] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -54,23 +63,55 @@ export const Navigation = () => {
     }
   };
 
+  const handleSignIn = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate('/auth');
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
-          <NavigationLink href="/" className="font-bold">
+          <NavigationLink 
+            href="/" 
+            currentPath={location.pathname}
+            className="font-bold"
+          >
             Logo
           </NavigationLink>
-          <DesktopMenu />
+          <DesktopMenu 
+            navItems={navItems}
+            currentPath={location.pathname}
+            isAuthenticated={!!session}
+            userEmail={session?.user?.email || null}
+            onLogout={handleSignOut}
+            onSignIn={handleSignIn}
+          />
         </div>
 
         <div className="flex items-center gap-4">
           {session ? (
-            <UserMenu session={session} onSignOut={handleSignOut} />
+            <UserMenu 
+              userEmail={session?.user?.email || null}
+              onLogout={handleSignOut}
+            />
           ) : (
-            <AuthButtons />
+            <AuthButtons 
+              isAuthenticated={!!session}
+              onSignIn={handleSignIn}
+              onLogout={handleSignOut}
+            />
           )}
-          <MobileMenu session={session} onSignOut={handleSignOut} />
+          <MobileMenu 
+            isOpen={isMobileMenuOpen}
+            navItems={navItems}
+            currentPath={location.pathname}
+            isAuthenticated={!!session}
+            userEmail={session?.user?.email || null}
+            onItemClick={() => setIsMobileMenuOpen(false)}
+            onLogout={handleSignOut}
+            onSignIn={handleSignIn}
+          />
         </div>
       </nav>
     </header>
