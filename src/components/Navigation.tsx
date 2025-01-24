@@ -11,6 +11,7 @@ export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -20,6 +21,16 @@ export const Navigation = () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
       setUserEmail(session?.user?.email ?? null);
+
+      if (session) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        setIsAdmin(roleData?.role === 'admin');
+      }
     };
 
     checkAuth();
@@ -35,6 +46,7 @@ export const Navigation = () => {
       } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
         setUserEmail(null);
+        setIsAdmin(false);
         toast({
           title: "Signed out successfully",
           duration: 2000,
@@ -74,6 +86,10 @@ export const Navigation = () => {
     { name: "Rankings", href: "/rankings" },
     { name: "News", href: "/news" },
   ];
+
+  if (isAdmin) {
+    navItems.push({ name: "Admin", href: "/admin" });
+  }
 
   return (
     <nav className="bg-[#1A1F2C]/95 backdrop-blur-lg fixed w-full z-50 border-b border-white/10">

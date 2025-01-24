@@ -14,6 +14,9 @@ import NotFound from "@/pages/NotFound";
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useNavigate } from "react-router-dom";
+import Rankings from "@/pages/Rankings";
+import NewsPage from "@/pages/News";
+import NewsArticle from "@/pages/NewsArticle";
 
 export default function App() {
   const navigate = useNavigate();
@@ -32,10 +35,11 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/education" element={<Education />} />
         <Route path="/education/content/:id" element={<ContentViewer />} />
-        <Route 
-          path="/quiz/:id" 
-          element={<QuizTaking onComplete={handleQuizComplete} />} 
-        />
+        <Route path="/education/:category/:id" element={<ContentViewer />} />
+        <Route path="/quiz/:id" element={<QuizTaking onComplete={handleQuizComplete} />} />
+        <Route path="/rankings" element={<Rankings />} />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/news/:slug" element={<NewsArticle />} />
         
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
