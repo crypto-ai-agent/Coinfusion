@@ -1,58 +1,64 @@
-import { Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { Link, useLocation } from "react-router-dom";
+import { 
+  BookOpen, 
+  FileQuestion, 
+  Newspaper, 
+  LayoutDashboard 
+} from "lucide-react";
 
-export function AdminSection() {
-  const navigate = useNavigate();
-  
-  const { data: userRole } = useQuery({
-    queryKey: ['userRole'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
+export const AdminSection = () => {
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
 
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return null;
-      }
-
-      return data?.role;
+  const adminLinks = [
+    {
+      name: "Dashboard",
+      href: "/admin",
+      icon: LayoutDashboard,
     },
-  });
-
-  if (userRole !== 'admin') return null;
+    {
+      name: "Educational Content",
+      href: "/admin/content",
+      icon: BookOpen,
+    },
+    {
+      name: "Quizzes",
+      href: "/admin/quizzes",
+      icon: FileQuestion,
+    },
+    {
+      name: "News",
+      href: "/admin/news",
+      icon: Newspaper,
+    },
+  ];
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Administration</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              className="w-full justify-start gap-2 text-primary hover:text-primary/80"
-              onClick={() => navigate('/admin')}
-            >
-              <Shield className="h-4 w-4" />
-              <span>Admin Dashboard</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <div className="space-y-4">
+      <div className="px-2 py-2">
+        <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-sidebar-foreground">
+          Admin Dashboard
+        </h2>
+        <div className="space-y-1">
+          {adminLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={`flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                  isActive(link.href)
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                }`}
+              >
+                <Icon className="mr-2 h-4 w-4" />
+                {link.name}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
-}
+};
