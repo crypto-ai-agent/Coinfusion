@@ -1,17 +1,15 @@
-import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { NavigationLink } from "./navigation/NavigationLink";
+import { AuthButtons } from "./navigation/AuthButtons";
+import { UserMenu } from "./navigation/UserMenu";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
-import { DesktopMenu } from "./navigation/DesktopMenu";
 import { MobileMenu } from "./navigation/MobileMenu";
+import { DesktopMenu } from "./navigation/DesktopMenu";
 
 export const Navigation = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [session, setSession] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -22,120 +20,59 @@ export const Navigation = () => {
   }
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-      setUserEmail(session?.user?.email ?? null);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
 
-      if (session) {
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
-        
-        setIsAdmin(roleData?.role === 'admin');
-      }
-    };
-
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
-        setIsAuthenticated(true);
-        setUserEmail(session?.user?.email ?? null);
-        toast({
-          title: "Signed in successfully",
-          duration: 2000,
-        });
-      } else if (event === 'SIGNED_OUT') {
-        setIsAuthenticated(false);
-        setUserEmail(null);
-        setIsAdmin(false);
-        toast({
-          title: "Signed out successfully",
-          duration: 2000,
-        });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user.user_metadata.isAdmin) {
+        navigate('/admin');
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [toast]);
+  }, [navigate]);
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      setIsAuthenticated(false);
-      setUserEmail(null);
-      setIsOpen(false);
-      navigate("/");
-    } catch (error) {
       toast({
-        title: "Error logging out",
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing out. Please try again.",
         variant: "destructive",
-        duration: 2000,
       });
     }
   };
 
-  const handleSignIn = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsOpen(false);
-    navigate("/auth");
-  };
-
-  const navItems = [
-    { name: "Home", href: "/" },
-    { name: "Education", href: "/education" },
-    { name: "Rankings", href: "/rankings" },
-    { name: "News", href: "/news" },
-  ];
-
-  if (isAdmin) {
-    navItems.push({ name: "Admin", href: "/admin" });
-  }
-
   return (
-    <nav className="bg-[#1A1F2C]/95 backdrop-blur-lg fixed w-full z-50 border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8B5CF6] to-[#D946EF]">
-              CoinFusion
-            </Link>
-          </div>
-          
-          <DesktopMenu
-            navItems={navItems}
-            currentPath={location.pathname}
-            isAuthenticated={isAuthenticated}
-            userEmail={userEmail}
-            onLogout={handleLogout}
-            onSignIn={handleSignIn}
-          />
-
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white focus:outline-none"
-            >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <nav className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-8">
+          <NavigationLink href="/" className="font-bold">
+            Logo
+          </NavigationLink>
+          <DesktopMenu />
         </div>
-      </div>
 
-      <MobileMenu
-        isOpen={isOpen}
-        navItems={navItems}
-        currentPath={location.pathname}
-        isAuthenticated={isAuthenticated}
-        userEmail={userEmail}
-        onItemClick={() => setIsOpen(false)}
-        onLogout={handleLogout}
-        onSignIn={handleSignIn}
-      />
-    </nav>
+        <div className="flex items-center gap-4">
+          {session ? (
+            <UserMenu session={session} onSignOut={handleSignOut} />
+          ) : (
+            <AuthButtons />
+          )}
+          <MobileMenu session={session} onSignOut={handleSignOut} />
+        </div>
+      </nav>
+    </header>
   );
 };
