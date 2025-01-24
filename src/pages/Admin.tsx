@@ -4,6 +4,7 @@ import { EducationalContentManager } from "./admin/EducationalContentManager";
 import { QuizManager } from "./admin/QuizManager";
 import { NewsManager } from "./admin/NewsManager";
 import { UserProfilesManager } from "@/components/admin/UserProfilesManager";
+import { AdminSection } from "@/components/dashboard/navigation/AdminSection";
 
 export default function Admin() {
   return (
