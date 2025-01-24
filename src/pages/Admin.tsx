@@ -1,9 +1,9 @@
 import { Routes, Route } from "react-router-dom";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import AdminDashboard from "./admin/AdminDashboard";
-import EducationalContentManager from "./admin/EducationalContentManager";
-import QuizManager from "./admin/QuizManager";
-import NewsManager from "./admin/NewsManager";
+import { EducationalContentManager } from "./admin/EducationalContentManager";
+import { QuizManager } from "./admin/QuizManager";
+import { NewsManager } from "./admin/NewsManager";
 
 export default function Admin() {
   return (
