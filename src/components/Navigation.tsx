@@ -16,6 +16,11 @@ export const Navigation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Don't show navigation on admin routes
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
