@@ -63,12 +63,14 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="h-48 bg-gray-100 animate-pulse rounded-lg"></div>
-          <div className="h-48 bg-gray-100 animate-pulse rounded-lg"></div>
-          <div className="h-48 bg-gray-100 animate-pulse rounded-lg"></div>
-          <div className="h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+      <div className="pl-64 pt-16">
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+            <div className="h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+            <div className="h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+            <div className="h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+          </div>
         </div>
       </div>
     );
@@ -76,10 +78,10 @@ const Dashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#121212]">
         <DashboardSidebar />
-        <main className="flex-1 p-6">
-          <div className="container mx-auto">
+        <main className="pl-64 pt-16">
+          <div className="p-8">
             <DashboardStats 
               totalPoints={userProgress.totalPoints}
               currentStreak={userProgress.currentStreak}

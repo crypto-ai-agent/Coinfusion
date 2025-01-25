@@ -8,8 +8,8 @@ export const DashboardSidebar = () => {
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
-    <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r bg-sidebar-background">
-      <div className="flex h-full flex-col gap-4 p-4">
+    <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r bg-white dark:bg-[#1A1F2C] shadow-sm z-30">
+      <div className="flex h-full flex-col gap-4 p-4 overflow-y-auto">
         {isAdminRoute ? (
           <AdminSection />
         ) : (
