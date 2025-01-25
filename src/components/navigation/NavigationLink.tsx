@@ -15,13 +15,11 @@ export const NavigationLink = ({
   children,
   className = "",
 }: NavigationLinkProps) => {
-  const isActive = currentPath === href;
-  
   return (
     <Link
       to={href}
-      className={`text-foreground hover:text-primary transition-colors ${
-        isActive ? "text-primary font-medium" : ""
+      className={`text-gray-300 hover:text-[#8B5CF6] transition-colors ${
+        currentPath === href ? "text-[#D946EF]" : ""
       } ${className}`}
       onClick={onClick}
     >

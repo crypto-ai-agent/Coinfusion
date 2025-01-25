@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MobileMenu } from "./navigation/MobileMenu";
 import { DesktopMenu } from "./navigation/DesktopMenu";
 import { NavigationItem } from "./navigation/types";
-import { Coins } from "lucide-react";
+import { Menu } from "lucide-react";
 
 const navItems: NavigationItem[] = [
   { name: "Home", href: "/" },
@@ -23,11 +23,6 @@ export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Don't show navigation on admin routes
-  if (location.pathname.startsWith('/admin')) {
-    return null;
-  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -70,17 +65,19 @@ export const Navigation = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-      <nav className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-8">
-          <NavigationLink 
-            href="/" 
-            currentPath={location.pathname}
-            className="flex items-center gap-2 font-bold text-primary hover:text-primary/90"
-          >
-            <Coins className="h-8 w-8 text-secondary" />
-            <span className="text-xl">CoinFusion</span>
-          </NavigationLink>
+    <nav className="bg-[#1A1F2C]/95 backdrop-blur-lg fixed w-full z-50 border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <NavigationLink 
+              href="/" 
+              currentPath={location.pathname}
+              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8B5CF6] to-[#D946EF]"
+            >
+              CoinFusion
+            </NavigationLink>
+          </div>
+
           <DesktopMenu 
             navItems={navItems}
             currentPath={location.pathname}
@@ -89,33 +86,28 @@ export const Navigation = () => {
             onLogout={handleSignOut}
             onSignIn={handleSignIn}
           />
-        </div>
 
-        <div className="flex items-center gap-4">
-          {session ? (
-            <UserMenu 
-              userEmail={session?.user?.email || null}
-              onLogout={handleSignOut}
-            />
-          ) : (
-            <AuthButtons 
-              isAuthenticated={!!session}
-              onSignIn={handleSignIn}
-              onLogout={handleSignOut}
-            />
-          )}
-          <MobileMenu 
-            isOpen={isMobileMenuOpen}
-            navItems={navItems}
-            currentPath={location.pathname}
-            isAuthenticated={!!session}
-            userEmail={session?.user?.email || null}
-            onItemClick={() => setIsMobileMenuOpen(false)}
-            onLogout={handleSignOut}
-            onSignIn={handleSignIn}
-          />
+          <div className="md:hidden flex items-center">
+            <button
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white focus:outline-none"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+          </div>
         </div>
-      </nav>
-    </header>
+      </div>
+
+      <MobileMenu 
+        isOpen={isMobileMenuOpen}
+        navItems={navItems}
+        currentPath={location.pathname}
+        isAuthenticated={!!session}
+        userEmail={session?.user?.email || null}
+        onItemClick={() => setIsMobileMenuOpen(false)}
+        onLogout={handleSignOut}
+        onSignIn={handleSignIn}
+      />
+    </nav>
   );
 };
