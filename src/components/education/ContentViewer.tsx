@@ -11,16 +11,17 @@ import { ReadingProgressBar } from "./content/ReadingProgressBar";
 import { useToast } from "@/hooks/use-toast";
 
 export const ContentViewer = () => {
-  const { id } = useParams();
+  const { id, category } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showQuiz, setShowQuiz] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   
-  const { data: content, isLoading } = useQuery({
+  const { data: content, isLoading, error } = useQuery({
     queryKey: ['educational-content', id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First try educational_content table
+      let { data: educationalContent, error: educationalError } = await supabase
         .from('educational_content')
         .select(`
           *,
@@ -31,10 +32,39 @@ export const ContentViewer = () => {
           )
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (educationalError) throw educationalError;
+      
+      // If not found in educational_content, try guides table
+      if (!educationalContent) {
+        const { data: guideContent, error: guideError } = await supabase
+          .from('guides')
+          .select(`
+            *,
+            quizzes (
+              id,
+              title,
+              points
+            )
+          `)
+          .eq('id', id)
+          .maybeSingle();
+
+        if (guideError) throw guideError;
+        if (!guideContent) return null;
+        
+        // Transform guide data to match educational content structure
+        return {
+          ...guideContent,
+          content: guideContent.description,
+          content_type: 'guide',
+          has_quiz: !!guideContent.quizzes?.length,
+          published: true
+        };
+      }
+
+      return educationalContent;
     },
   });
 
@@ -99,10 +129,18 @@ export const ContentViewer = () => {
     );
   }
 
-  if (!content) {
+  if (error || !content) {
     return (
       <div className="max-w-4xl mx-auto p-8">
-        <p className="text-center text-gray-600">Content not found</p>
+        <Card className="text-center p-6">
+          <h2 className="text-xl font-semibold mb-2">Content Not Found</h2>
+          <p className="text-gray-600 mb-4">
+            The content you're looking for might have been moved or deleted.
+          </p>
+          <Button onClick={() => navigate("/education")}>
+            Return to Education Hub
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -127,9 +165,9 @@ export const ContentViewer = () => {
         <ContentHeader
           title={content.title}
           description={content.content.substring(0, 150) + '...'}
-          difficulty="intermediate"
+          difficulty={content.difficulty || "intermediate"}
           points={content.quizzes?.[0]?.points || 0}
-          readTime="5 min"
+          readTime={content.read_time || "5 min"}
           isCompleted={isCompleted}
         />
 
