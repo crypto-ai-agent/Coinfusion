@@ -6,9 +6,33 @@ import { QuizTaking } from "@/components/quiz/QuizTaking";
 import { ContentHeader } from "./content/ContentHeader";
 import { ContentActions } from "./content/ContentActions";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button"; // Added Button import
 import { useMarkAsCompleted } from "@/hooks/useMarkAsCompleted";
 import { ReadingProgressBar } from "./content/ReadingProgressBar";
 import { useToast } from "@/hooks/use-toast";
+
+// Define a type for the combined content structure
+type ContentType = {
+  id: string;
+  title: string;
+  content: string;
+  content_type: 'guide' | 'educational';
+  category: string;
+  difficulty?: string;
+  read_time?: string;
+  description?: string;
+  has_quiz?: boolean;
+  published: boolean;
+  quizzes?: Array<{
+    id: string;
+    title: string;
+    points: number;
+  }>;
+  author_id?: string;
+  slug?: string;
+  created_at?: string;
+  updated_at?: string;
+};
 
 export const ContentViewer = () => {
   const { id, category } = useParams();
@@ -61,10 +85,10 @@ export const ContentViewer = () => {
           content_type: 'guide',
           has_quiz: !!guideContent.quizzes?.length,
           published: true
-        };
+        } as ContentType;
       }
 
-      return educationalContent;
+      return educationalContent as ContentType;
     },
   });
 
