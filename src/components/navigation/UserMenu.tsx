@@ -19,13 +19,17 @@ export const UserMenu = ({ userEmail, onLogout }: UserMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="ml-4">
+        <Button variant="ghost" size="icon" className="relative">
           <User className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem className="text-sm text-gray-500">
+      <DropdownMenuContent align="end" className="w-56 z-50">
+        <DropdownMenuItem className="text-sm text-muted-foreground">
           {userEmail}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+          <User className="mr-2 h-4 w-4" />
+          Dashboard
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/profile")}>
           <Settings className="mr-2 h-4 w-4" />

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MobileMenu } from "./navigation/MobileMenu";
 import { DesktopMenu } from "./navigation/DesktopMenu";
 import { NavigationItem } from "./navigation/types";
+import { Image } from "lucide-react";
 
 const navItems: NavigationItem[] = [
   { name: "Home", href: "/" },
@@ -69,15 +70,16 @@ export const Navigation = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
           <NavigationLink 
             href="/" 
             currentPath={location.pathname}
-            className="font-bold"
+            className="flex items-center gap-2 font-bold"
           >
-            Logo
+            <Image className="h-8 w-8" />
+            <span className="text-xl">CoinFusion</span>
           </NavigationLink>
           <DesktopMenu 
             navItems={navItems}
