@@ -9,9 +9,13 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
 
   const updateMutation = useMutation({
     mutationFn: async (updatedContent: Content) => {
-      const { data: session } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession();
       console.log('Updating content:', updatedContent);
       
+      if (!sessionData.session) {
+        throw new Error('No session found');
+      }
+
       if (contentType === 'guide') {
         const { data, error } = await supabase
           .from('guides')
@@ -37,7 +41,7 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
             category: updatedContent.category,
             published: updatedContent.published,
             has_quiz: updatedContent.has_quiz,
-            author_id: session?.user.id || updatedContent.author_id,
+            author_id: sessionData.session.user.id || updatedContent.author_id,
           })
           .eq('id', updatedContent.id)
           .select();
@@ -70,6 +74,10 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
     mutationFn: async (newContent: Omit<Content, 'id' | 'author_id' | 'slug'>) => {
       const { data: { session } } = await supabase.auth.getSession();
       
+      if (!session) {
+        throw new Error('No session found');
+      }
+      
       if (contentType === 'guide') {
         const { data, error } = await supabase
           .from('guides')
@@ -96,7 +104,7 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
             published: newContent.published,
             has_quiz: newContent.has_quiz,
             content_type: 'educational',
-            author_id: session?.user.id,
+            author_id: session.user.id,
             slug: `${newContent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`,
           }])
           .select()
