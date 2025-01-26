@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface ContentFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
-  type: 'guide' | 'educational';
+  type: 'guide' | 'educational' | 'news';
   isEditing?: boolean;
   defaultValues?: {
     title?: string;
@@ -32,8 +32,18 @@ export const ContentForm = ({
   const [published, setPublished] = useState(defaultValues.published || false);
   const [hasQuiz, setHasQuiz] = useState(defaultValues.has_quiz || false);
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    formData.set('published', published.toString());
+    if (showQuizOption) {
+      formData.set('has_quiz', hasQuiz.toString());
+    }
+    onSubmit(e);
+  };
+
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div>
           <Label htmlFor="title">Title</Label>
@@ -79,7 +89,6 @@ export const ContentForm = ({
             onCheckedChange={setPublished}
           />
           <Label htmlFor="published">Published</Label>
-          <input type="hidden" name="published" value={published.toString()} />
         </div>
 
         {showQuizOption && (
@@ -91,7 +100,6 @@ export const ContentForm = ({
               onCheckedChange={setHasQuiz}
             />
             <Label htmlFor="has_quiz">Has Quiz</Label>
-            <input type="hidden" name="has_quiz" value={hasQuiz.toString()} />
           </div>
         )}
       </div>
@@ -101,7 +109,7 @@ export const ContentForm = ({
           Cancel
         </Button>
         <Button type="submit">
-          {isEditing ? 'Update' : 'Create'} {type === 'guide' ? 'Guide' : 'Educational Material'}
+          {isEditing ? 'Update' : 'Create'} {type === 'guide' ? 'Guide' : type === 'news' ? 'News Article' : 'Educational Material'}
         </Button>
       </div>
     </form>

@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { ContentForm } from "@/components/admin/ContentForm";
 import { ContentTable } from "@/components/admin/ContentTable";
 import { QuizCreationFlow } from "@/components/admin/QuizCreationFlow";
-import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Content } from "@/types/content";
+import { ContentHeader } from "@/components/admin/content/ContentHeader";
+import { useContentMutations } from "@/components/admin/content/ContentMutations";
+import { useToast } from "@/hooks/use-toast";
 
 export const EducationalContentManager = () => {
   const [isAddingContent, setIsAddingContent] = useState(false);
@@ -16,13 +17,10 @@ export const EducationalContentManager = () => {
   const [quizContent, setQuizContent] = useState<Content | null>(null);
   const [isCreatingNewQuiz, setIsCreatingNewQuiz] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const { data: content, isLoading } = useQuery({
     queryKey: ['educationalContent', selectedContentType],
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getSession();
-      
       if (selectedContentType === 'guide') {
         const { data, error } = await supabase
           .from('guides')
@@ -36,7 +34,7 @@ export const EducationalContentManager = () => {
           quiz_title: item.quizzes?.[0]?.title,
           content_type: 'guide' as const,
           has_quiz: !!item.quizzes?.[0],
-          published: true // Guides are always published
+          published: true
         }));
       } else {
         const { data, error } = await supabase
@@ -54,151 +52,7 @@ export const EducationalContentManager = () => {
     },
   });
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-  };
-
-  const updateMutation = useMutation({
-    mutationFn: async (updatedContent: Content) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (updatedContent.content_type === 'guide') {
-        const { error } = await supabase
-          .from('guides')
-          .update({
-            title: updatedContent.title,
-            description: updatedContent.content,
-            category: updatedContent.category,
-          })
-          .eq('id', updatedContent.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('educational_content')
-          .update({
-            title: updatedContent.title,
-            content: updatedContent.content,
-            category: updatedContent.category,
-            published: updatedContent.published,
-            slug: generateSlug(updatedContent.title),
-            author_id: session?.user.id || updatedContent.author_id,
-          })
-          .eq('id', updatedContent.id);
-        if (error) {
-          console.error('Update error:', error);
-          throw error;
-        }
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
-      toast({
-        title: "Success",
-        description: "Content updated successfully.",
-      });
-      setEditingContent(null);
-    },
-    onError: (error: any) => {
-      console.error('Update error details:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update content. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (newContent: Omit<Content, 'id' | 'author_id' | 'slug'>) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const slug = generateSlug(newContent.title);
-      
-      if (newContent.content_type === 'guide') {
-        const { data, error } = await supabase
-          .from('guides')
-          .insert([{ 
-            title: newContent.title,
-            description: newContent.content,
-            category: newContent.category,
-            read_time: '5 min',
-            points: 10,
-            difficulty: 'beginner',
-          }])
-          .select()
-          .single();
-
-        if (error) throw error;
-        return {
-          ...data,
-          content_type: 'guide' as const,
-          has_quiz: false,
-          published: true
-        };
-      } else {
-        const { data, error } = await supabase
-          .from('educational_content')
-          .insert([{ 
-            ...newContent, 
-            author_id: session?.user.id,
-            slug: `${slug}-${Date.now()}` // Make slug unique by adding timestamp
-          }])
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      }
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
-      queryClient.invalidateQueries({ queryKey: ['guides'] });
-      toast({
-        title: "Success",
-        description: "Content created successfully.",
-      });
-      setIsAddingContent(false);
-
-      if (data.content_type === 'educational' && data.has_quiz) {
-        setQuizContent(data as Content);
-        setIsCreatingNewQuiz(true);
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create content. Please try again.",
-        variant: "destructive",
-      });
-      console.error('Creation error:', error);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('educational_content')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
-      toast({
-        title: "Success",
-        description: "Content deleted successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete content. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+  const { updateMutation, createMutation } = useContentMutations(selectedContentType);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -214,20 +68,17 @@ export const EducationalContentManager = () => {
     };
 
     if (editingContent) {
-      updateMutation.mutate({ ...contentData, id: editingContent.id, author_id: editingContent.author_id, slug: editingContent.slug });
+      updateMutation.mutate({ 
+        ...contentData, 
+        id: editingContent.id, 
+        author_id: editingContent.author_id, 
+        slug: editingContent.slug 
+      } as Content);
+      setEditingContent(null);
     } else {
       createMutation.mutate(contentData);
+      setIsAddingContent(false);
     }
-  };
-
-  const handleAddQuiz = (content: Content) => {
-    setQuizContent(content);
-    setIsCreatingNewQuiz(false);
-  };
-
-  const handleCreateNewQuiz = (content: Content) => {
-    setQuizContent(content);
-    setIsCreatingNewQuiz(true);
   };
 
   const handleQuizComplete = async () => {
@@ -246,7 +97,6 @@ export const EducationalContentManager = () => {
         return;
       }
 
-      queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
       setQuizContent(null);
       setIsCreatingNewQuiz(false);
       toast({
@@ -259,18 +109,6 @@ export const EducationalContentManager = () => {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-
-  const handleEdit = (item: Content) => {
-    setEditingContent(item);
-    setSelectedContentType(item.content_type);
-    setIsAddingContent(false);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this content?')) {
-      deleteMutation.mutate(id);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -291,14 +129,11 @@ export const EducationalContentManager = () => {
         </TabsList>
 
         <TabsContent value="guides">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Guides</h2>
-            {!editingContent && (
-              <Button onClick={() => setIsAddingContent(true)}>
-                Add New Guide
-              </Button>
-            )}
-          </div>
+          <ContentHeader
+            title="Guides"
+            onAdd={() => setIsAddingContent(true)}
+            isEditing={!!editingContent}
+          />
 
           {(isAddingContent || editingContent) && selectedContentType === 'guide' ? (
             <ContentForm 
@@ -314,21 +149,41 @@ export const EducationalContentManager = () => {
           ) : (
             <ContentTable 
               items={content || []}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              onEdit={(item) => {
+                setEditingContent(item);
+                setSelectedContentType(item.content_type);
+                setIsAddingContent(false);
+              }}
+              onDelete={async (id) => {
+                const { error } = await supabase
+                  .from(selectedContentType === 'guide' ? 'guides' : 'educational_content')
+                  .delete()
+                  .eq('id', id);
+                
+                if (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to delete content.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                toast({
+                  title: "Success",
+                  description: "Content deleted successfully.",
+                });
+              }}
             />
           )}
         </TabsContent>
 
         <TabsContent value="educational">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Educational Materials</h2>
-            {!editingContent && (
-              <Button onClick={() => setIsAddingContent(true)}>
-                Add New Educational Material
-              </Button>
-            )}
-          </div>
+          <ContentHeader
+            title="Educational Materials"
+            onAdd={() => setIsAddingContent(true)}
+            isEditing={!!editingContent}
+          />
 
           {(isAddingContent || editingContent) && selectedContentType === 'educational' ? (
             <ContentForm 
@@ -345,10 +200,39 @@ export const EducationalContentManager = () => {
           ) : (
             <ContentTable 
               items={content?.filter(item => item.content_type === 'educational') || []}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAddQuiz={handleAddQuiz}
-              onCreateNewQuiz={handleCreateNewQuiz}
+              onEdit={(item) => {
+                setEditingContent(item);
+                setSelectedContentType(item.content_type);
+                setIsAddingContent(false);
+              }}
+              onDelete={async (id) => {
+                const { error } = await supabase
+                  .from('educational_content')
+                  .delete()
+                  .eq('id', id);
+                
+                if (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to delete content.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                toast({
+                  title: "Success",
+                  description: "Content deleted successfully.",
+                });
+              }}
+              onAddQuiz={(content) => {
+                setQuizContent(content);
+                setIsCreatingNewQuiz(false);
+              }}
+              onCreateNewQuiz={(content) => {
+                setQuizContent(content);
+                setIsCreatingNewQuiz(true);
+              }}
             />
           )}
         </TabsContent>
