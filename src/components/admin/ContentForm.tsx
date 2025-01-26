@@ -2,22 +2,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { QuizSelector } from "./QuizSelector";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ContentFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
-  type: 'guide' | 'educational' | 'news';
+  type: 'guide' | 'educational';
   isEditing?: boolean;
   defaultValues?: {
-    title: string;
-    content: string;
-    category: string;
-    published: boolean;
-    quiz_id?: string | null;
+    title?: string;
+    content?: string;
+    category?: string;
+    published?: boolean;
+    has_quiz?: boolean;
   };
   showQuizOption?: boolean;
 }
@@ -26,83 +25,75 @@ export const ContentForm = ({
   onSubmit,
   onClose,
   type,
-  isEditing,
-  defaultValues,
-  showQuizOption,
+  isEditing = false,
+  defaultValues = {},
+  showQuizOption = false,
 }: ContentFormProps) => {
-  const [showQuizSelector, setShowQuizSelector] = useState(false);
-  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(defaultValues?.quiz_id || null);
-
-  const handleQuizSelect = (quizIds: string[]) => {
-    setSelectedQuizId(quizIds[0] || null);
-    setShowQuizSelector(false);
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    formData.append('quiz_id', selectedQuizId || '');
-    onSubmit(e);
-  };
+  const [published, setPublished] = useState(defaultValues.published || false);
+  const [hasQuiz, setHasQuiz] = useState(defaultValues.has_quiz || false);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="title">Title</Label>
-        <Input
-          id="title"
-          name="title"
-          defaultValue={defaultValues?.title}
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="content">Content</Label>
-        <Textarea
-          id="content"
-          name="content"
-          defaultValue={defaultValues?.content}
-          required
-          className="min-h-[200px]"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="category">Category</Label>
-        <Input
-          id="category"
-          name="category"
-          defaultValue={defaultValues?.category}
-          required
-        />
-      </div>
-
-      {showQuizOption && type === 'educational' && (
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Attach Quiz</Label>
-            <p className="text-sm text-gray-500">
-              {selectedQuizId ? 'Quiz attached' : 'No quiz attached'}
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowQuizSelector(true)}
-          >
-            {selectedQuizId ? 'Change Quiz' : 'Select Quiz'}
-          </Button>
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            name="title"
+            defaultValue={defaultValues.title}
+            required
+          />
         </div>
-      )}
 
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="published"
-          name="published"
-          defaultChecked={defaultValues?.published}
-        />
-        <Label htmlFor="published">Published</Label>
+        <div>
+          <Label htmlFor="category">Category</Label>
+          <Select name="category" defaultValue={defaultValues.category || "basics"}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="basics">Basics</SelectItem>
+              <SelectItem value="advanced">Advanced</SelectItem>
+              <SelectItem value="security">Security</SelectItem>
+              <SelectItem value="investment">Investment</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="content">Content</Label>
+          <Textarea
+            id="content"
+            name="content"
+            defaultValue={defaultValues.content}
+            required
+            className="min-h-[200px]"
+          />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="published"
+            name="published"
+            checked={published}
+            onCheckedChange={setPublished}
+          />
+          <Label htmlFor="published">Published</Label>
+          <input type="hidden" name="published" value={published.toString()} />
+        </div>
+
+        {showQuizOption && (
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="has_quiz"
+              name="has_quiz"
+              checked={hasQuiz}
+              onCheckedChange={setHasQuiz}
+            />
+            <Label htmlFor="has_quiz">Has Quiz</Label>
+            <input type="hidden" name="has_quiz" value={hasQuiz.toString()} />
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end space-x-2">
@@ -110,22 +101,9 @@ export const ContentForm = ({
           Cancel
         </Button>
         <Button type="submit">
-          {isEditing ? 'Update' : 'Create'} {type === 'guide' ? 'Guide' : 'Content'}
+          {isEditing ? 'Update' : 'Create'} {type === 'guide' ? 'Guide' : 'Educational Material'}
         </Button>
       </div>
-
-      <Dialog open={showQuizSelector} onOpenChange={setShowQuizSelector}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Quiz</DialogTitle>
-          </DialogHeader>
-          <QuizSelector
-            onSelect={handleQuizSelect}
-            selectedQuizzes={selectedQuizId ? [selectedQuizId] : []}
-            singleSelect={true}
-          />
-        </DialogContent>
-      </Dialog>
     </form>
   );
 };

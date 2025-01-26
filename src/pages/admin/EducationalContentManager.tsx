@@ -61,6 +61,56 @@ export const EducationalContentManager = () => {
       .replace(/(^-|-$)/g, '');
   };
 
+  const updateMutation = useMutation({
+    mutationFn: async (updatedContent: Content) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (updatedContent.content_type === 'guide') {
+        const { error } = await supabase
+          .from('guides')
+          .update({
+            title: updatedContent.title,
+            description: updatedContent.content,
+            category: updatedContent.category,
+          })
+          .eq('id', updatedContent.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('educational_content')
+          .update({
+            title: updatedContent.title,
+            content: updatedContent.content,
+            category: updatedContent.category,
+            published: updatedContent.published,
+            slug: generateSlug(updatedContent.title),
+            author_id: session?.user.id || updatedContent.author_id,
+          })
+          .eq('id', updatedContent.id);
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
+      toast({
+        title: "Success",
+        description: "Content updated successfully.",
+      });
+      setEditingContent(null);
+    },
+    onError: (error: any) => {
+      console.error('Update error details:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update content. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async (newContent: Omit<Content, 'id' | 'author_id' | 'slug'>) => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -123,34 +173,6 @@ export const EducationalContentManager = () => {
         variant: "destructive",
       });
       console.error('Creation error:', error);
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (updatedContent: Content) => {
-      const { error } = await supabase
-        .from('educational_content')
-        .update({
-          ...updatedContent,
-          slug: generateSlug(updatedContent.title)
-        })
-        .eq('id', updatedContent.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['educationalContent'] });
-      toast({
-        title: "Success",
-        description: "Content updated successfully.",
-      });
-      setEditingContent(null);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update content. Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
