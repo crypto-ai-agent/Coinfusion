@@ -33,6 +33,8 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
         }
         return data;
       } else {
+        console.log('Updating educational content with published:', updatedContent.published);
+        
         const { data, error } = await supabase
           .from('educational_content')
           .update({
@@ -41,7 +43,7 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
             category: updatedContent.category,
             published: updatedContent.published,
             has_quiz: updatedContent.has_quiz,
-            author_id: sessionData.session.user.id || updatedContent.author_id,
+            author_id: sessionData.session.user.id,
           })
           .eq('id', updatedContent.id)
           .select();

@@ -7,7 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ContentFormProps {
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (formData: {
+    title: string;
+    content: string;
+    category: string;
+    published: boolean;
+    has_quiz?: boolean;
+  }) => void;
   onClose: () => void;
   type: 'guide' | 'educational' | 'news';
   isEditing?: boolean;
@@ -35,11 +41,17 @@ export const ContentForm = ({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    formData.set('published', published.toString());
-    if (showQuizOption) {
-      formData.set('has_quiz', hasQuiz.toString());
-    }
-    onSubmit(e);
+    
+    // Create a structured object instead of using FormData directly
+    const contentData = {
+      title: formData.get('title') as string,
+      content: formData.get('content') as string,
+      category: formData.get('category') as string,
+      published: published, // Use the state directly
+      has_quiz: showQuizOption ? hasQuiz : undefined,
+    };
+    
+    onSubmit(contentData);
   };
 
   return (
@@ -84,7 +96,6 @@ export const ContentForm = ({
         <div className="flex items-center space-x-2">
           <Switch
             id="published"
-            name="published"
             checked={published}
             onCheckedChange={setPublished}
           />
@@ -95,7 +106,6 @@ export const ContentForm = ({
           <div className="flex items-center space-x-2">
             <Switch
               id="has_quiz"
-              name="has_quiz"
               checked={hasQuiz}
               onCheckedChange={setHasQuiz}
             />

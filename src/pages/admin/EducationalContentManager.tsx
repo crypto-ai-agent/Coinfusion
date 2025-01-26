@@ -54,29 +54,17 @@ export const EducationalContentManager = () => {
 
   const { updateMutation, createMutation } = useContentMutations(selectedContentType);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+  const handleSubmit = async (formData: any) => {
+    console.log('Form submission data:', formData);
     
-    const contentData = {
-      title: formData.get('title') as string,
-      content: formData.get('content') as string,
-      category: formData.get('category') as string,
-      published: formData.get('published') === 'true',
-      content_type: selectedContentType,
-      has_quiz: selectedContentType === 'educational' && formData.get('has_quiz') === 'true',
-    };
-
     if (editingContent) {
       updateMutation.mutate({ 
-        ...contentData, 
-        id: editingContent.id, 
-        author_id: editingContent.author_id, 
-        slug: editingContent.slug 
-      } as Content);
+        ...editingContent,
+        ...formData,
+      });
       setEditingContent(null);
     } else {
-      createMutation.mutate(contentData);
+      createMutation.mutate(formData);
       setIsAddingContent(false);
     }
   };
@@ -174,6 +162,14 @@ export const EducationalContentManager = () => {
                   description: "Content deleted successfully.",
                 });
               }}
+              onAddQuiz={(content) => {
+                setQuizContent(content);
+                setIsCreatingNewQuiz(false);
+              }}
+              onCreateNewQuiz={(content) => {
+                setQuizContent(content);
+                setIsCreatingNewQuiz(true);
+              }}
             />
           )}
         </TabsContent>
@@ -201,6 +197,7 @@ export const EducationalContentManager = () => {
             <ContentTable 
               items={content?.filter(item => item.content_type === 'educational') || []}
               onEdit={(item) => {
+                console.log('Editing item:', item);
                 setEditingContent(item);
                 setSelectedContentType(item.content_type);
                 setIsAddingContent(false);
