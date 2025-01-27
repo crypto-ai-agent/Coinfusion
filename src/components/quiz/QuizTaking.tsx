@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const { toast } = useToast();
-  
   const quizProgress = useQuizProgress();
 
   const { data: quiz, isLoading } = useQuery({
@@ -39,6 +38,49 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
       
       if (error) throw error;
       return data;
+    },
+  });
+
+  const submitQuizMutation = useMutation({
+    mutationFn: async ({ score, answers }: { score: number, answers: Record<string, string> }) => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.user) throw new Error('Not authenticated');
+
+      // Record quiz attempt
+      const { error: attemptError } = await supabase
+        .from('quiz_attempts')
+        .insert([{
+          user_id: sessionData.session.user.id,
+          quiz_id: routeQuizId,
+          score,
+          answers
+        }]);
+
+      if (attemptError) throw attemptError;
+
+      // Update user progress
+      const { error: progressError } = await supabase
+        .from('user_progress')
+        .update({
+          total_points: supabase.sql`total_points + ${score}`,
+          last_activity: new Date().toISOString()
+        })
+        .eq('user_id', sessionData.session.user.id);
+
+      if (progressError) throw progressError;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Quiz completed!",
+        description: "Your progress has been saved.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save quiz progress.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -68,16 +110,10 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
       setShowFeedback(false);
     } else {
       const score = calculateScore();
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      if (sessionData?.session?.user) {
-        await quizProgress.mutateAsync({
-          quizId: quiz.id,
-          score,
-          answers,
-          userId: sessionData.session.user.id,
-        });
-      }
+      await submitQuizMutation.mutateAsync({ 
+        score, 
+        answers 
+      });
       setShowResults(true);
     }
   };
@@ -113,7 +149,7 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
       <CardHeader>
         <CardTitle>{quiz.title}</CardTitle>
         <QuizProgress
-          currentQuestion={currentQuestion}
+          currentQuestion={currentQuestion + 1}
           totalQuestions={quiz.quiz_questions.length}
         />
       </CardHeader>

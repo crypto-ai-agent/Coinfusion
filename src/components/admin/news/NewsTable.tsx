@@ -1,56 +1,92 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PublishToggle } from "./PublishToggle";
-import { format } from "date-fns";
-import { NewsArticle } from "@/utils/newsOperations";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
 
-interface NewsTableProps {
-  news: NewsArticle[];
-  onEdit: (item: NewsArticle) => void;
-  onDelete: (id: string) => void;
-  onUpdate: () => void;
+interface Article {
+  id: string;
+  title: string;
+  category: string;
+  published: boolean;
+  created_at: string;
+  content: string;
+  content_type: string;
+  author_id: string;
+  slug: string;
+  updated_at: string;
 }
 
-export const NewsTable = ({ news, onEdit, onDelete, onUpdate }: NewsTableProps) => {
+interface NewsTableProps {
+  data: Article[];
+  onEdit: (article: Article) => void;
+  onDelete: (id: string) => Promise<void>;
+  onTogglePublish?: (id: string, published: boolean) => Promise<void>;
+}
+
+export const NewsTable = ({ 
+  data, 
+  onEdit, 
+  onDelete,
+  onTogglePublish 
+}: NewsTableProps) => {
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setIsDeleting(id);
+    await onDelete(id);
+    setIsDeleting(null);
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Title</TableHead>
           <TableHead>Category</TableHead>
-          <TableHead>Created At</TableHead>
           <TableHead>Published</TableHead>
+          <TableHead>Created</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {news.map((article) => (
+        {data.map((article) => (
           <TableRow key={article.id}>
             <TableCell>{article.title}</TableCell>
             <TableCell>{article.category}</TableCell>
-            <TableCell>{format(new Date(article.created_at), 'MMM d, yyyy')}</TableCell>
             <TableCell>
-              <PublishToggle
-                id={article.id}
-                published={article.published}
-                onUpdate={onUpdate}
+              <Switch
+                checked={article.published}
+                onCheckedChange={(checked) => onTogglePublish?.(article.id, checked)}
               />
             </TableCell>
-            <TableCell className="space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit(article)}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onDelete(article.id)}
-              >
-                Delete
-              </Button>
+            <TableCell>
+              {new Date(article.created_at).toLocaleDateString()}
+            </TableCell>
+            <TableCell>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(article)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(article.id)}
+                  disabled={isDeleting === article.id}
+                >
+                  {isDeleting === article.id ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
             </TableCell>
           </TableRow>
         ))}
