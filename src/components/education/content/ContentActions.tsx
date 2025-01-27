@@ -18,21 +18,18 @@ export const ContentActions = ({
   onStartQuiz,
   onBackToHub,
 }: ContentActionsProps) => {
+  // Lower the threshold to 20% for testing purposes
+  const READING_THRESHOLD = 20;
+  
   // Show quiz button if content has a quiz and either:
   // 1. Content is already completed OR
-  // 2. User has read at least 90% of the content
-  const showQuizButton = hasQuiz && (isCompleted || readingProgress >= 90);
+  // 2. User has read at least the threshold amount
+  const showQuizButton = hasQuiz && (isCompleted || readingProgress >= READING_THRESHOLD);
   
   // Show complete button if:
   // 1. Content is not completed AND
-  // 2. User has read at least 90% of the content AND
-  // 3. Either there's no quiz OR content is already completed
-  const showCompleteButton = !isCompleted && readingProgress >= 90 && (!hasQuiz || isCompleted);
-  
-  // Show back button if:
-  // 1. Content is completed AND
-  // 2. There's no quiz
-  const showBackButton = isCompleted && !hasQuiz;
+  // 2. User has read at least the threshold amount
+  const showCompleteButton = !isCompleted && readingProgress >= READING_THRESHOLD;
 
   return (
     <div className="mt-12 flex justify-between items-center pt-6 border-t">
@@ -56,13 +53,13 @@ export const ContentActions = ({
         </Button>
       )}
 
-      {!showQuizButton && !showCompleteButton && readingProgress < 90 && (
+      {!showQuizButton && !showCompleteButton && readingProgress < READING_THRESHOLD && (
         <div className="text-gray-600">
-          Read more to unlock quiz and completion
+          Read {READING_THRESHOLD}% of the content to unlock quiz and completion
         </div>
       )}
 
-      {showBackButton && (
+      {isCompleted && !hasQuiz && (
         <Button
           onClick={onBackToHub}
           variant="outline"

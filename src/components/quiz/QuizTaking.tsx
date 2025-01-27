@@ -7,7 +7,6 @@ import { QuizQuestion } from "./QuizQuestion";
 import { QuizFeedback } from "./QuizFeedback";
 import { QuizProgress } from "./QuizProgress";
 import { QuizResults } from "./QuizResults";
-import { useQuizProgress } from "@/hooks/useQuizProgress";
 import { useToast } from "@/hooks/use-toast";
 import { useParams } from "react-router-dom";
 
@@ -16,16 +15,15 @@ interface QuizTakingProps {
 }
 
 export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
-  const { id: routeQuizId } = useParams();
+  const { id: quizId } = useParams();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showFeedback, setShowFeedback] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const { toast } = useToast();
-  const quizProgress = useQuizProgress();
 
   const { data: quiz, isLoading } = useQuery({
-    queryKey: ['quiz', routeQuizId],
+    queryKey: ['quiz', quizId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('quizzes')
@@ -33,7 +31,7 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
           *,
           quiz_questions (*)
         `)
-        .eq('id', routeQuizId)
+        .eq('id', quizId)
         .single();
       
       if (error) throw error;
@@ -51,7 +49,7 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
         .from('quiz_attempts')
         .insert([{
           user_id: sessionData.session.user.id,
-          quiz_id: routeQuizId,
+          quiz_id: quizId,
           score,
           answers
         }]);
@@ -62,7 +60,7 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
       const { error: progressError } = await supabase
         .from('user_progress')
         .update({
-          total_points: supabase.sql`total_points + ${score}`,
+          total_points: score,
           last_activity: new Date().toISOString()
         })
         .eq('user_id', sessionData.session.user.id);
@@ -83,10 +81,6 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
       });
     },
   });
-
-  if (isLoading || !quiz || !quiz.quiz_questions) {
-    return <div>Loading quiz...</div>;
-  }
 
   const handleAnswer = (value: string) => {
     setAnswers({
@@ -127,6 +121,10 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
     return Math.round((correctAnswers / totalQuestions) * 100);
   };
 
+  if (isLoading || !quiz || !quiz.quiz_questions) {
+    return <div>Loading quiz...</div>;
+  }
+
   if (showResults) {
     return (
       <Card>
@@ -149,7 +147,7 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
       <CardHeader>
         <CardTitle>{quiz.title}</CardTitle>
         <QuizProgress
-          currentQuestion={currentQuestion + 1}
+          currentQuestion={currentQuestion}
           totalQuestions={quiz.quiz_questions.length}
         />
       </CardHeader>

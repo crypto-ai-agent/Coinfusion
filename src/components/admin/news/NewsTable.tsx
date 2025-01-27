@@ -1,92 +1,61 @@
-import { useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
+import { Pencil, Trash } from "lucide-react";
+import { PublishToggle } from "./PublishToggle";
 
-interface Article {
+export interface NewsArticle {
   id: string;
   title: string;
-  category: string;
-  published: boolean;
-  created_at: string;
   content: string;
-  content_type: string;
+  category: string;
   author_id: string;
   slug: string;
+  published: boolean;
+  content_type: string;
+  created_at: string;
   updated_at: string;
 }
 
-interface NewsTableProps {
-  data: Article[];
-  onEdit: (article: Article) => void;
+export interface NewsTableProps {
+  articles: NewsArticle[];
+  onEdit: (article: NewsArticle) => void;
   onDelete: (id: string) => Promise<void>;
-  onTogglePublish?: (id: string, published: boolean) => Promise<void>;
 }
 
-export const NewsTable = ({ 
-  data, 
-  onEdit, 
-  onDelete,
-  onTogglePublish 
-}: NewsTableProps) => {
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
-
-  const handleDelete = async (id: string) => {
-    setIsDeleting(id);
-    await onDelete(id);
-    setIsDeleting(null);
-  };
-
+export const NewsTable = ({ articles, onEdit, onDelete }: NewsTableProps) => {
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Title</TableHead>
           <TableHead>Category</TableHead>
-          <TableHead>Published</TableHead>
-          <TableHead>Created</TableHead>
+          <TableHead>Status</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.map((article) => (
+        {articles.map((article) => (
           <TableRow key={article.id}>
             <TableCell>{article.title}</TableCell>
             <TableCell>{article.category}</TableCell>
             <TableCell>
-              <Switch
-                checked={article.published}
-                onCheckedChange={(checked) => onTogglePublish?.(article.id, checked)}
-              />
+              <PublishToggle published={article.published} />
             </TableCell>
-            <TableCell>
-              {new Date(article.created_at).toLocaleDateString()}
-            </TableCell>
-            <TableCell>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(article)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(article.id)}
-                  disabled={isDeleting === article.id}
-                >
-                  {isDeleting === article.id ? "Deleting..." : "Delete"}
-                </Button>
-              </div>
+            <TableCell className="space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onEdit(article)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onDelete(article.id)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
             </TableCell>
           </TableRow>
         ))}
