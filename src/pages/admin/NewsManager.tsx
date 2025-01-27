@@ -35,16 +35,19 @@ export const NewsManager = () => {
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
+  const handleSubmit = async (formData: {
+    title: string;
+    content: string;
+    category: string;
+    published: boolean;
+    has_quiz?: boolean;
+  }) => {
     const newsData = {
-      title: formData.get('title') as string,
-      content: formData.get('content') as string,
-      category: formData.get('category') as string,
-      slug: formData.get('slug') as string || formData.get('title') as string,
-      published: formData.get('published') === 'true',
+      title: formData.title,
+      content: formData.content,
+      category: formData.category,
+      slug: formData.title,
+      published: formData.published,
       content_type: 'news' as const,
       author_id: (await supabase.auth.getUser()).data.user?.id as string,
     };
