@@ -20,9 +20,10 @@ export interface NewsTableProps {
   articles: NewsArticle[];
   onEdit: (article: NewsArticle) => void;
   onDelete: (id: string) => Promise<void>;
+  onUpdate: () => void;
 }
 
-export const NewsTable = ({ articles, onEdit, onDelete }: NewsTableProps) => {
+export const NewsTable = ({ articles, onEdit, onDelete, onUpdate }: NewsTableProps) => {
   return (
     <Table>
       <TableHeader>
@@ -39,7 +40,11 @@ export const NewsTable = ({ articles, onEdit, onDelete }: NewsTableProps) => {
             <TableCell>{article.title}</TableCell>
             <TableCell>{article.category}</TableCell>
             <TableCell>
-              <PublishToggle published={article.published} />
+              <PublishToggle 
+                id={article.id} 
+                published={article.published} 
+                onUpdate={onUpdate}
+              />
             </TableCell>
             <TableCell className="space-x-2">
               <Button
