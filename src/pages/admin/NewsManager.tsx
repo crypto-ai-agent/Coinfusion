@@ -1,37 +1,36 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import { NewsTable } from "@/components/admin/news/NewsTable";
 import { NewsForm } from "@/components/admin/news/NewsForm";
-import { createNewsArticle, deleteNewsArticle, updateNewsArticle, type NewsArticle } from "@/utils/newsOperations";
+import { NewsTable } from "@/components/admin/news/NewsTable";
+import { NewsHeader } from "@/components/admin/news/NewsHeader";
+import { useNewsActions } from "@/components/admin/news/NewsActions";
+import { useToast } from "@/hooks/use-toast";
+
+interface NewsArticle {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  published: boolean;
+  slug: string;
+}
 
 export const NewsManager = () => {
-  const [isAddingNews, setIsAddingNews] = useState(false);
-  const [editingNews, setEditingNews] = useState<NewsArticle | null>(null);
+  const [isAddingContent, setIsAddingContent] = useState(false);
+  const [editingContent, setEditingContent] = useState<NewsArticle | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { createArticle, updateArticle, deleteArticle } = useNewsActions();
 
-  const { data: news, isLoading } = useQuery({
+  const { data: articles, isLoading } = useQuery({
     queryKey: ['news'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('news_articles')
         .select('*')
         .order('created_at', { ascending: false });
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to fetch news articles.",
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      return data as NewsArticle[];
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -40,92 +39,63 @@ export const NewsManager = () => {
     content: string;
     category: string;
     published: boolean;
-    has_quiz?: boolean;
   }) => {
-    const newsData = {
-      title: formData.title,
-      content: formData.content,
-      category: formData.category,
-      slug: formData.title,
-      published: formData.published,
-      content_type: 'news' as const,
-      author_id: (await supabase.auth.getUser()).data.user?.id as string,
-    };
+    try {
+      const newsData = {
+        title: formData.title,
+        content: formData.content,
+        category: formData.category,
+        slug: formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        published: formData.published,
+        content_type: 'news' as const,
+        author_id: (await supabase.auth.getUser()).data.user?.id,
+      };
 
-    if (editingNews) {
-      const success = await updateNewsArticle(editingNews.id, newsData);
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: ['news'] });
-        toast({
-          title: "Success",
-          description: "News article updated successfully.",
-        });
-        setEditingNews(null);
+      if (editingContent) {
+        await updateArticle({ ...newsData, id: editingContent.id });
+        setEditingContent(null);
+      } else {
+        await createArticle(newsData);
+        setIsAddingContent(false);
       }
-    } else {
-      const newArticle = await createNewsArticle(newsData);
-      if (newArticle) {
-        queryClient.invalidateQueries({ queryKey: ['news'] });
-        toast({
-          title: "Success",
-          description: "News article created successfully.",
-        });
-        setIsAddingNews(false);
-      }
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this news article?')) {
-      const success = await deleteNewsArticle(id);
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: ['news'] });
-        toast({
-          title: "Success",
-          description: "News article deleted successfully.",
-        });
-      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save article",
+        variant: "destructive",
+      });
     }
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">News Management</h2>
-        {!editingNews && (
-          <Button onClick={() => setIsAddingNews(true)}>
-            Add News Article
-          </Button>
-        )}
-      </div>
+      <NewsHeader 
+        onAdd={() => setIsAddingContent(true)}
+        isEditing={!!editingContent}
+      />
 
-      {(isAddingNews || editingNews) ? (
-        <NewsForm 
+      {(isAddingContent || editingContent) ? (
+        <NewsForm
           onSubmit={handleSubmit}
-          onClose={() => {
-            setIsAddingNews(false);
-            setEditingNews(null);
+          onCancel={() => {
+            setIsAddingContent(false);
+            setEditingContent(null);
           }}
-          isEditing={!!editingNews}
-          defaultValues={editingNews || undefined}
+          defaultValues={editingContent || undefined}
         />
       ) : (
-        <NewsTable 
-          news={news || []}
-          onEdit={(item) => {
-            setEditingNews(item);
-            setIsAddingNews(false);
+        <NewsTable
+          articles={articles || []}
+          onEdit={setEditingContent}
+          onDelete={async (id) => {
+            if (window.confirm('Are you sure you want to delete this article?')) {
+              await deleteArticle(id);
+            }
           }}
-          onDelete={handleDelete}
-          onUpdate={() => queryClient.invalidateQueries({ queryKey: ['news'] })}
         />
       )}
     </div>
