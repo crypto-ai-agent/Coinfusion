@@ -1,11 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const fetchQuiz = async (quizId: string) => {
   const { data, error } = await supabase
     .from('quizzes')
     .select(`
       *,
-      quiz_questions (*)
+      quiz_questions (
+        id,
+        question,
+        options,
+        correct_answer,
+        explanation,
+        feedback_correct,
+        feedback_incorrect
+      )
     `)
     .eq('id', quizId)
     .maybeSingle();
@@ -15,13 +24,14 @@ export const fetchQuiz = async (quizId: string) => {
 };
 
 export const submitQuizAttempt = async (
-  quizId: string,
-  score: number,
+  quizId: string, 
+  score: number, 
   answers: Record<string, string>
 ) => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
+  // Save quiz attempt
   const { error: attemptError } = await supabase
     .from('quiz_attempts')
     .insert([{
@@ -33,14 +43,17 @@ export const submitQuizAttempt = async (
 
   if (attemptError) throw attemptError;
 
-  // Update user progress
+  // Update user progress with points
   const { error: progressError } = await supabase
     .from('user_progress')
-    .update({
+    .upsert({
+      user_id: session.user.id,
       total_points: score,
-      last_activity: new Date().toISOString()
-    })
-    .eq('user_id', session.user.id);
+      last_activity: new Date().toISOString(),
+      current_streak: 1
+    }, {
+      onConflict: 'user_id'
+    });
 
   if (progressError) throw progressError;
 };

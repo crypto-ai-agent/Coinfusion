@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { QuizTaking } from "@/components/quiz/QuizTaking";
 import { ContentBody } from "./content/ContentBody";
@@ -28,6 +28,7 @@ export type ContentType = {
 
 export const ContentViewer = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [showQuiz, setShowQuiz] = useState(false);
   
@@ -38,8 +39,9 @@ export const ContentViewer = () => {
     setShowQuiz(false);
     toast({
       title: "Quiz Completed",
-      description: `You scored ${score}%!`,
+      description: `You scored ${score}%! Points have been added to your profile.`,
     });
+    navigate("/education");
   };
 
   if (isLoading) return <LoadingState />;

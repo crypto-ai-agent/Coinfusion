@@ -8,6 +8,8 @@ import { QuizResults } from "./QuizResults";
 import { useQuizState } from "./hooks/useQuizState";
 import { fetchQuiz } from "@/utils/quiz/quizDataService";
 import { useParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 interface QuizTakingProps {
   onComplete: (score: number) => void;
@@ -15,8 +17,9 @@ interface QuizTakingProps {
 
 export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
   const { id: quizId } = useParams();
+  const { toast } = useToast();
 
-  const { data: quiz, isLoading } = useQuery({
+  const { data: quiz, isLoading, error } = useQuery({
     queryKey: ['quiz', quizId],
     queryFn: () => fetchQuiz(quizId || ''),
     enabled: !!quizId,
@@ -33,13 +36,28 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
     calculateScore,
   } = useQuizState(quiz, onComplete);
 
-  if (isLoading || !quiz) {
-    return <div>Loading quiz...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error || !quiz) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="p-6">
+          <h2 className="text-xl font-semibold text-red-600">Error Loading Quiz</h2>
+          <p className="text-gray-600 mt-2">Unable to load the quiz. Please try again later.</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (showResults) {
     return (
-      <Card>
+      <Card className="max-w-2xl mx-auto">
         <QuizResults
           score={calculateScore()}
           totalQuestions={quiz.quiz_questions.length}
@@ -55,11 +73,11 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
     : JSON.parse(currentQuestionData.options as string);
 
   return (
-    <Card>
+    <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>{quiz.title}</CardTitle>
         <QuizProgress
-          currentQuestion={currentQuestion}
+          currentQuestion={currentQuestion + 1}
           totalQuestions={quiz.quiz_questions.length}
         />
       </CardHeader>
@@ -88,6 +106,7 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
             <Button
               onClick={() => setShowFeedback(true)}
               variant="outline"
+              disabled={!answers[currentQuestionData.id]}
             >
               Check Answer
             </Button>
@@ -95,6 +114,7 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
           <Button
             onClick={handleNext}
             className="ml-auto"
+            disabled={!answers[currentQuestionData.id]}
           >
             {currentQuestion < quiz.quiz_questions.length - 1 ? "Next Question" : "Complete Quiz"}
           </Button>

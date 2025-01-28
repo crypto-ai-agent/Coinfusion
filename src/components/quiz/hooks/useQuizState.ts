@@ -9,22 +9,29 @@ export const useQuizState = (quiz: any, onComplete: (score: number) => void) => 
   const [showResults, setShowResults] = useState(false);
   const { toast } = useToast();
 
-  const handleAnswer = (value: string) => {
-    setAnswers({
-      ...answers,
-      [quiz.quiz_questions[currentQuestion].id]: value,
-    });
+  const handleAnswer = (answer: string) => {
+    if (!quiz?.quiz_questions[currentQuestion]) return;
+    
+    setAnswers(prev => ({
+      ...prev,
+      [quiz.quiz_questions[currentQuestion].id]: answer
+    }));
   };
 
   const calculateScore = () => {
+    if (!quiz?.quiz_questions) return 0;
+    
     const totalQuestions = quiz.quiz_questions.length;
     const correctAnswers = quiz.quiz_questions.reduce((count: number, question: any) => {
       return count + (answers[question.id] === question.correct_answer ? 1 : 0);
     }, 0);
+    
     return Math.round((correctAnswers / totalQuestions) * 100);
   };
 
   const handleNext = async () => {
+    if (!quiz?.quiz_questions[currentQuestion]) return;
+
     if (!answers[quiz.quiz_questions[currentQuestion].id]) {
       toast({
         title: "Please select an answer",
@@ -35,14 +42,17 @@ export const useQuizState = (quiz: any, onComplete: (score: number) => void) => 
     }
 
     if (currentQuestion < quiz.quiz_questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+      setCurrentQuestion(prev => prev + 1);
       setShowFeedback(false);
     } else {
       const score = calculateScore();
       try {
         await submitQuizAttempt(quiz.id, score, answers);
         setShowResults(true);
-        onComplete(score);
+        toast({
+          title: "Quiz Completed!",
+          description: `You scored ${score}%!`,
+        });
       } catch (error) {
         toast({
           title: "Error",
