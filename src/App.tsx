@@ -2,21 +2,21 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { Home } from "@/pages/Home";
 import { About } from "@/pages/About";
 import { Contact } from "@/pages/Contact";
-import { Auth } from "@/pages/Auth";
+import Auth from "@/pages/Auth";
 import { Profile } from "@/pages/Profile";
 import { Settings } from "@/pages/Settings";
 import { NotFound } from "@/pages/NotFound";
-import { Dashboard } from "@/pages/Dashboard";
-import { Education } from "@/pages/Education";
-import { Rankings } from "@/pages/Rankings";
-import { NewsPage } from "@/pages/News";
-import { NewsArticle } from "@/pages/NewsArticle";
+import Dashboard from "@/pages/Dashboard";
+import Education from "@/pages/Education";
+import Rankings from "@/pages/Rankings";
+import NewsPage from "@/pages/News";
+import NewsArticle from "@/pages/NewsArticle";
 import { ContentViewer } from "@/components/education/ContentViewer";
 import { QuizTaking } from "@/components/quiz/QuizTaking";
 import { useToast } from "@/hooks/use-toast";
 import { AdminRoute } from "@/components/AdminRoute";
 import { PrivateRoute } from "@/components/PrivateRoute";
-import { Admin } from "@/pages/Admin";
+import Admin from "@/pages/Admin";
 
 export default function App() {
   const { toast } = useToast();
@@ -37,9 +37,9 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
+        <Route path="/settings" element={<PrivateRoute element={<Settings />} />} />
+        <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
         <Route path="/education" element={<Education />} />
         <Route path="/education/:category/:id" element={<ContentViewer />} />
         <Route 
@@ -52,9 +52,7 @@ export default function App() {
         <Route
           path="/admin/*"
           element={
-            <AdminRoute>
-              <Admin />
-            </AdminRoute>
+            <AdminRoute element={<Admin />} />
           }
         />
         <Route path="*" element={<NotFound />} />

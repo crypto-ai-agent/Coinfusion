@@ -1,35 +1,16 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
-export const AdminRoute = () => {
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+interface AdminRouteProps {
+  element: React.ReactElement;
+}
 
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setIsAdmin(false);
-        return;
-      }
+export const AdminRoute = ({ element }: AdminRouteProps) => {
+  const { user, isAdmin } = useAuth();
 
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single();
-
-      setIsAdmin(data?.role === 'admin');
-    };
-
-    checkAdminStatus();
-  }, []);
-
-  if (isAdmin === null) {
-    return <div>Loading...</div>;
+  if (!user || !isAdmin) {
+    return <Navigate to="/" replace />;
   }
 
-  return isAdmin ? <Outlet /> : <Navigate to="/" />;
+  return element;
 };
-
-export default AdminRoute;

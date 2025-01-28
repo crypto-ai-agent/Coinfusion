@@ -1,30 +1,16 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
-export const PrivateRoute = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+interface PrivateRouteProps {
+  element: React.ReactElement;
+}
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-    };
+export const PrivateRoute = ({ element }: PrivateRouteProps) => {
+  const { user } = useAuth();
 
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (isAuthenticated === null) {
-    return <div>Loading...</div>;
+  if (!user) {
+    return <Navigate to="/auth" replace />;
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/auth" />;
+  return element;
 };
-
-export default PrivateRoute;
