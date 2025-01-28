@@ -37,7 +37,12 @@ export default function App() {
         <Route path="/education/:category/:id" element={<ContentViewer />} />
         <Route 
           path="/quiz/:quizId" 
-          element={<QuizTaking onComplete={handleQuizComplete} />} 
+          element={
+            <QuizTaking 
+              quizId="" // This will be overridden by the component's internal logic
+              onComplete={handleQuizComplete} 
+            />
+          } 
         />
         <Route path="/rankings" element={<Rankings />} />
         <Route path="/news" element={<NewsPage />} />

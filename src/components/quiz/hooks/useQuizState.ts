@@ -21,12 +21,11 @@ export const useQuizState = (quiz: any, onComplete: (score: number) => void) => 
   const calculateScore = () => {
     if (!quiz?.quiz_questions) return 0;
     
-    const totalQuestions = quiz.quiz_questions.length;
     const correctAnswers = quiz.quiz_questions.reduce((count: number, question: any) => {
       return count + (answers[question.id] === question.correct_answer ? 1 : 0);
     }, 0);
     
-    return Math.round((correctAnswers / totalQuestions) * 100);
+    return correctAnswers;
   };
 
   const handleNext = async () => {
@@ -45,13 +44,14 @@ export const useQuizState = (quiz: any, onComplete: (score: number) => void) => 
       setCurrentQuestion(prev => prev + 1);
       setShowFeedback(false);
     } else {
-      const score = calculateScore();
+      const correctAnswers = calculateScore();
       try {
-        await submitQuizAttempt(quiz.id, score, answers);
+        await submitQuizAttempt(quiz.id, correctAnswers, answers);
         setShowResults(true);
+        onComplete(correctAnswers);
         toast({
           title: "Quiz Completed!",
-          description: `You scored ${score}%!`,
+          description: `You got ${correctAnswers} out of ${quiz.quiz_questions.length} questions correct!`,
         });
       } catch (error) {
         toast({
