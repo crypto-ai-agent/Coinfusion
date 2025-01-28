@@ -1,3 +1,4 @@
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,19 +7,21 @@ import { QuizFeedback } from "./QuizFeedback";
 import { QuizProgress } from "./QuizProgress";
 import { QuizResults } from "./QuizResults";
 import { useQuizState } from "./hooks/useQuizState";
-import { fetchQuiz } from "@/utils/quiz/quizDataService";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface QuizTakingProps {
-  quizId: string;
   onComplete: (score: number) => void;
 }
 
-export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
+export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
+  const { quizId } = useParams();
+
   const { data: quiz, isLoading, error } = useQuery({
     queryKey: ['quiz', quizId],
     queryFn: async () => {
+      if (!quizId) throw new Error('Quiz ID is required');
+
       const { data, error } = await supabase
         .from('quizzes')
         .select(`
@@ -40,6 +43,7 @@ export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
       if (!data) throw new Error('Quiz not found');
       return data;
     },
+    enabled: !!quizId,
   });
 
   const {
