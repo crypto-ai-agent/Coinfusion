@@ -21,7 +21,7 @@ export interface NewsTableProps {
   articles: NewsArticle[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => Promise<void>;
-  onUpdate: (id: string, data: Partial<NewsArticle>) => Promise<void>;
+  onUpdate: () => void;
 }
 
 export const NewsTable = ({ articles, onEdit, onDelete, onUpdate }: NewsTableProps) => {

@@ -67,6 +67,13 @@ export const NewsManager = () => {
     }
   };
 
+  const handleEdit = (id: string) => {
+    const article = articles?.find(a => a.id === id);
+    if (article) {
+      setEditingContent(article);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -90,11 +97,15 @@ export const NewsManager = () => {
       ) : (
         <NewsTable
           articles={articles || []}
-          onEdit={setEditingContent}
+          onEdit={handleEdit}
           onDelete={async (id) => {
             if (window.confirm('Are you sure you want to delete this article?')) {
               await deleteArticle(id);
             }
+          }}
+          onUpdate={() => {
+            // Refresh data after update
+            window.location.reload();
           }}
         />
       )}
