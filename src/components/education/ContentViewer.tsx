@@ -7,6 +7,7 @@ import { ErrorState } from "./content/ErrorState";
 import { useToast } from "@/hooks/use-toast";
 import { useContentLoader } from "./content/ContentLoader";
 import { useUserProgressTracker } from "./content/UserProgressTracker";
+import { QuizSection } from "./QuizSection";
 
 export type ContentType = {
   id: string;
@@ -35,12 +36,53 @@ export const ContentViewer = () => {
   const { data: content, isLoading, error } = useContentLoader(id);
   const { data: userProgress } = useUserProgressTracker(id);
 
-  const handleQuizComplete = (score: number) => {
+  const handleQuizComplete = async (score: number) => {
     setShowQuiz(false);
-    toast({
-      title: "Quiz Completed",
-      description: `You scored ${score}%! Points have been added to your profile.`,
-    });
+    
+    // Update user progress and points
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save quiz progress",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Calculate points based on score percentage
+      const earnedPoints = Math.round((score / 100) * (content?.quizzes?.[0]?.points || 10));
+
+      // Update user progress
+      const { error: progressError } = await supabase
+        .from('user_progress')
+        .upsert({
+          user_id: session.user.id,
+          total_points: earnedPoints,
+          completed_content: userProgress?.completed_content 
+            ? [...userProgress.completed_content, content?.id]
+            : [content?.id],
+          last_activity: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (progressError) throw progressError;
+
+      toast({
+        title: "Quiz Completed!",
+        description: `You scored ${score}% and earned ${earnedPoints} points!`,
+      });
+    } catch (error) {
+      console.error('Error saving quiz progress:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save quiz progress",
+        variant: "destructive"
+      });
+    }
+
     navigate("/education");
   };
 
@@ -48,12 +90,16 @@ export const ContentViewer = () => {
   if (error || !content) return <ErrorState />;
 
   const isCompleted = userProgress?.completed_content?.includes(content.id);
+  const quizId = content.quizzes?.[0]?.id;
 
-  if (showQuiz && content.quizzes?.[0]) {
+  if (showQuiz && quizId) {
     return (
       <div className="min-h-screen bg-gray-50 py-20">
         <div className="max-w-4xl mx-auto px-4">
-          <QuizTaking onComplete={handleQuizComplete} />
+          <QuizTaking 
+            quizId={quizId} 
+            onComplete={handleQuizComplete} 
+          />
         </div>
       </div>
     );
@@ -66,6 +112,13 @@ export const ContentViewer = () => {
         isCompleted={isCompleted}
         onStartQuiz={() => setShowQuiz(true)}
       />
+      {content.has_quiz && quizId && (
+        <QuizSection
+          contentId={content.id}
+          quizId={quizId}
+          onStartQuiz={() => setShowQuiz(true)}
+        />
+      )}
     </div>
   );
 };

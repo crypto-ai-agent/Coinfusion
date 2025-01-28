@@ -7,22 +7,39 @@ import { QuizProgress } from "./QuizProgress";
 import { QuizResults } from "./QuizResults";
 import { useQuizState } from "./hooks/useQuizState";
 import { fetchQuiz } from "@/utils/quiz/quizDataService";
-import { useParams } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuizTakingProps {
+  quizId: string;
   onComplete: (score: number) => void;
 }
 
-export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
-  const { id: quizId } = useParams();
-  const { toast } = useToast();
-
+export const QuizTaking = ({ quizId, onComplete }: QuizTakingProps) => {
   const { data: quiz, isLoading, error } = useQuery({
     queryKey: ['quiz', quizId],
-    queryFn: () => fetchQuiz(quizId || ''),
-    enabled: !!quizId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('quizzes')
+        .select(`
+          *,
+          quiz_questions (
+            id,
+            question,
+            options,
+            correct_answer,
+            explanation,
+            feedback_correct,
+            feedback_incorrect
+          )
+        `)
+        .eq('id', quizId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error('Quiz not found');
+      return data;
+    },
   });
 
   const {
@@ -77,7 +94,7 @@ export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
       <CardHeader>
         <CardTitle>{quiz.title}</CardTitle>
         <QuizProgress
-          currentQuestion={currentQuestion + 1}
+          currentQuestion={currentQuestion}
           totalQuestions={quiz.quiz_questions.length}
         />
       </CardHeader>
