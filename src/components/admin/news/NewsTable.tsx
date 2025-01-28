@@ -1,9 +1,10 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { PublishToggle } from "./PublishToggle";
+import { formatDate } from "@/lib/utils";
 
-export interface NewsArticle {
+interface NewsArticle {
   id: string;
   title: string;
   content: string;
@@ -11,16 +12,16 @@ export interface NewsArticle {
   author_id: string;
   slug: string;
   published: boolean;
-  content_type: string;
   created_at: string;
+  content_type: string;
   updated_at: string;
 }
 
 export interface NewsTableProps {
   articles: NewsArticle[];
-  onEdit: (article: NewsArticle) => void;
+  onEdit: (id: string) => void;
   onDelete: (id: string) => Promise<void>;
-  onUpdate: () => void;
+  onUpdate: (id: string, data: Partial<NewsArticle>) => Promise<void>;
 }
 
 export const NewsTable = ({ articles, onEdit, onDelete, onUpdate }: NewsTableProps) => {
@@ -30,6 +31,7 @@ export const NewsTable = ({ articles, onEdit, onDelete, onUpdate }: NewsTablePro
         <TableRow>
           <TableHead>Title</TableHead>
           <TableHead>Category</TableHead>
+          <TableHead>Created</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
@@ -39,10 +41,11 @@ export const NewsTable = ({ articles, onEdit, onDelete, onUpdate }: NewsTablePro
           <TableRow key={article.id}>
             <TableCell>{article.title}</TableCell>
             <TableCell>{article.category}</TableCell>
+            <TableCell>{formatDate(article.created_at)}</TableCell>
             <TableCell>
-              <PublishToggle 
-                id={article.id} 
-                published={article.published} 
+              <PublishToggle
+                id={article.id}
+                published={article.published}
                 onUpdate={onUpdate}
               />
             </TableCell>
@@ -50,16 +53,16 @@ export const NewsTable = ({ articles, onEdit, onDelete, onUpdate }: NewsTablePro
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => onEdit(article)}
+                onClick={() => onEdit(article.id)}
               >
-                <Pencil className="h-4 w-4" />
+                <Edit2 className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => onDelete(article.id)}
               >
-                <Trash className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
               </Button>
             </TableCell>
           </TableRow>

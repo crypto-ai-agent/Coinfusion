@@ -6,6 +6,8 @@ export const useContentLoader = (id: string | undefined) => {
   return useQuery({
     queryKey: ['educational-content', id],
     queryFn: async () => {
+      if (!id) return null;
+
       let { data: educationalContent, error: educationalError } = await supabase
         .from('educational_content')
         .select(`
@@ -49,5 +51,6 @@ export const useContentLoader = (id: string | undefined) => {
 
       return educationalContent as ContentType;
     },
+    enabled: !!id,
   });
 };

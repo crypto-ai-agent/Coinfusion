@@ -64,7 +64,6 @@ export const ContentBody = ({ content, isCompleted, onStartQuiz }: ContentBodyPr
             <ContentActions
               isCompleted={isCompleted}
               hasQuiz={!!content.quizzes?.length}
-              readingProgress={readingProgress}
               onComplete={() => markAsCompletedMutation.mutate()}
               onStartQuiz={onStartQuiz}
               onBackToHub={() => navigate("/education")}
