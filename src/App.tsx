@@ -22,7 +22,6 @@ export default function App() {
   const navigate = useNavigate();
 
   const handleQuizComplete = async (score: number) => {
-    // After quiz completion, navigate back to education
     navigate("/education");
   };
 
@@ -36,7 +35,10 @@ export default function App() {
         <Route path="/education" element={<Education />} />
         <Route path="/education/content/:id" element={<ContentViewer />} />
         <Route path="/education/:category/:id" element={<ContentViewer />} />
-        <Route path="/quiz/:id" element={<QuizTaking onComplete={handleQuizComplete} />} />
+        <Route 
+          path="/quiz/:quizId" 
+          element={<QuizTaking onComplete={handleQuizComplete} />} 
+        />
         <Route path="/rankings" element={<Rankings />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/news/:slug" element={<NewsArticle />} />

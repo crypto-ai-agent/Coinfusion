@@ -40,7 +40,11 @@ export const EducationalContentSection = ({ content, completedContent }: Educati
             isCompleted={completedContent?.includes(item.id) || false}
           />
           {item.has_quiz && item.quizzes?.[0] && (
-            <QuizSection contentId={item.id} quizId={item.quizzes[0].id} />
+            <QuizSection 
+              contentId={item.id} 
+              quizId={item.quizzes[0].id}
+              onStartQuiz={() => {}}
+            />
           )}
         </div>
       ))}
