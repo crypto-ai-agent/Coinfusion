@@ -1,11 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { QuizBasicForm } from "./quiz/forms/QuizBasicForm";
+import { QuizSelectionForm } from "./quiz/forms/QuizSelectionForm";
 
 export type QuizFormProps = {
   contentId?: string;
@@ -20,9 +18,9 @@ export type QuizFormProps = {
 };
 
 export const QuizForm = ({ contentId, onComplete, onCancel, categories, mode }: QuizFormProps) => {
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
 
   const { data: existingQuizzes } = useQuery({
     queryKey: ['unattachedQuizzes'],
@@ -111,108 +109,21 @@ export const QuizForm = ({ contentId, onComplete, onCancel, categories, mode }: 
 
   if (mode === 'select') {
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-4">
-          {existingQuizzes?.map((quiz) => (
-            <div key={quiz.id} className="flex items-center space-x-2 p-4 border rounded">
-              <input
-                type="radio"
-                name="quiz_id"
-                value={quiz.id}
-                checked={selectedQuizId === quiz.id}
-                onChange={(e) => setSelectedQuizId(e.target.value)}
-                className="h-4 w-4"
-              />
-              <div>
-                <h3 className="font-medium">{quiz.title}</h3>
-                <p className="text-sm text-gray-500">{quiz.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={!selectedQuizId}>
-            Attach Quiz
-          </Button>
-        </div>
-      </form>
+      <QuizSelectionForm
+        existingQuizzes={existingQuizzes || []}
+        selectedQuizId={selectedQuizId}
+        onQuizSelect={setSelectedQuizId}
+        onSubmit={handleSubmit}
+        onCancel={onCancel}
+      />
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="title">Quiz Title</Label>
-        <Input
-          id="title"
-          name="title"
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          name="description"
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="category_id">Category</Label>
-        <select
-          id="category_id"
-          name="category_id"
-          className="w-full border rounded-md p-2"
-          required
-        >
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <Label htmlFor="points">Points</Label>
-        <Input
-          id="points"
-          name="points"
-          type="number"
-          min="0"
-          defaultValue="10"
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="difficulty_level">Difficulty Level</Label>
-        <select
-          id="difficulty_level"
-          name="difficulty_level"
-          className="w-full border rounded-md p-2"
-          required
-        >
-          <option value="beginner">Beginner</option>
-          <option value="intermediate">Intermediate</option>
-          <option value="advanced">Advanced</option>
-        </select>
-      </div>
-
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          Create Quiz
-        </Button>
-      </div>
-    </form>
+    <QuizBasicForm
+      onSubmit={handleSubmit}
+      onCancel={onCancel}
+      categories={categories}
+    />
   );
 };

@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QuizQuestion } from "./QuizQuestion";
 import { QuizFeedback } from "./QuizFeedback";
 import { QuizProgress } from "./QuizProgress";
 import { QuizResults } from "./QuizResults";
-import { useToast } from "@/hooks/use-toast";
+import { useQuizState } from "./hooks/useQuizState";
+import { fetchQuiz } from "@/utils/quiz/quizDataService";
 import { useParams } from "react-router-dom";
 
 interface QuizTakingProps {
@@ -16,112 +15,25 @@ interface QuizTakingProps {
 
 export const QuizTaking = ({ onComplete }: QuizTakingProps) => {
   const { id: quizId } = useParams();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const { toast } = useToast();
 
   const { data: quiz, isLoading } = useQuery({
     queryKey: ['quiz', quizId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('quizzes')
-        .select(`
-          *,
-          quiz_questions (*)
-        `)
-        .eq('id', quizId)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => fetchQuiz(quizId || ''),
+    enabled: !!quizId,
   });
 
-  const submitQuizMutation = useMutation({
-    mutationFn: async ({ score, answers }: { score: number, answers: Record<string, string> }) => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session?.user) throw new Error('Not authenticated');
+  const {
+    currentQuestion,
+    answers,
+    showFeedback,
+    showResults,
+    handleAnswer,
+    handleNext,
+    setShowFeedback,
+    calculateScore,
+  } = useQuizState(quiz, onComplete);
 
-      // Record quiz attempt
-      const { error: attemptError } = await supabase
-        .from('quiz_attempts')
-        .insert([{
-          user_id: sessionData.session.user.id,
-          quiz_id: quizId,
-          score,
-          answers
-        }]);
-
-      if (attemptError) throw attemptError;
-
-      // Update user progress
-      const { error: progressError } = await supabase
-        .from('user_progress')
-        .update({
-          total_points: score,
-          last_activity: new Date().toISOString()
-        })
-        .eq('user_id', sessionData.session.user.id);
-
-      if (progressError) throw progressError;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Quiz completed!",
-        description: "Your progress has been saved.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to save quiz progress.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleAnswer = (value: string) => {
-    setAnswers({
-      ...answers,
-      [quiz.quiz_questions[currentQuestion].id]: value,
-    });
-  };
-
-  const handleNext = async () => {
-    if (!answers[quiz.quiz_questions[currentQuestion].id]) {
-      toast({
-        title: "Please select an answer",
-        description: "You must select an answer before continuing.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentQuestion < quiz.quiz_questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setShowFeedback(false);
-    } else {
-      const score = calculateScore();
-      await submitQuizMutation.mutateAsync({ 
-        score, 
-        answers 
-      });
-      setShowResults(true);
-    }
-  };
-
-  const calculateScore = () => {
-    const totalQuestions = quiz.quiz_questions.length;
-    const correctAnswers = quiz.quiz_questions.reduce((count, question) => {
-      return count + (answers[question.id] === question.correct_answer ? 1 : 0);
-    }, 0);
-
-    return Math.round((correctAnswers / totalQuestions) * 100);
-  };
-
-  if (isLoading || !quiz || !quiz.quiz_questions) {
+  if (isLoading || !quiz) {
     return <div>Loading quiz...</div>;
   }
 
