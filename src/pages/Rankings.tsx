@@ -1,30 +1,14 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Navigation } from "@/components/Navigation";
-import { Rankings as RankingsSection } from "@/components/Rankings";
+import { CryptoTable } from "@/components/rankings/CryptoTable";
+import { CryptoTabs } from "@/components/rankings/CryptoTabs";
+import { WatchlistSection } from "@/components/rankings/WatchlistSection";
 
-const RankingsPage = () => {
-  const [searchParams] = useSearchParams();
-  
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    const listId = searchParams.get("list");
-    const action = searchParams.get("action");
-    
-    if (tab === "watchlists") {
-      // The WatchlistSection component will handle these parameters
-      document.getElementById("rankings")?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [searchParams]);
-
+export const Rankings = () => {
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20">
-        <RankingsSection />
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Cryptocurrency Rankings</h1>
+      <CryptoTabs />
+      <CryptoTable />
+      <WatchlistSection />
     </div>
   );
 };
-
-export default RankingsPage;
