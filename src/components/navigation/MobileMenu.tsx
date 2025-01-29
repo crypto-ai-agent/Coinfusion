@@ -1,7 +1,7 @@
 import { NavigationLink } from "./NavigationLink";
 import { AuthButtons } from "./AuthButtons";
 import { NavigationItem } from "./types";
-import { Menu } from "lucide-react";
+import { Menu as MenuIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -30,14 +30,14 @@ export const MobileMenu = ({
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon">
-            <Menu className="h-5 w-5" />
+            <MenuIcon className="h-5 w-5" />
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="w-64">
           <div className="flex flex-col gap-4 mt-4">
             {navItems.map((item) => (
               <NavigationLink
-                key={item.name}
+                key={item.href}
                 href={item.href}
                 currentPath={currentPath}
                 onClick={onItemClick}
