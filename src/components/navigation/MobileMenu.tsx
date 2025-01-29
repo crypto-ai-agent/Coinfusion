@@ -1,7 +1,7 @@
 import { NavigationLink } from "./NavigationLink";
 import { AuthButtons } from "./AuthButtons";
 import { NavigationItem } from "./types";
-import { Menu as MenuIcon } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -30,7 +30,7 @@ export const MobileMenu = ({
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon">
-            <MenuIcon className="h-5 w-5" />
+            <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="w-64">

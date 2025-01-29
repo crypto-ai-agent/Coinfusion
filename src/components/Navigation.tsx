@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MobileMenu } from "./navigation/MobileMenu";
 import { DesktopMenu } from "./navigation/DesktopMenu";
 import { NavigationItem } from "./navigation/types";
-import { Menu as MenuIcon } from "lucide-react";
+import { Menu } from "lucide-react";
 
 const navItems: NavigationItem[] = [
   { name: "Home", href: "/" },
@@ -89,7 +89,7 @@ export const Navigation = () => {
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white focus:outline-none"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              <MenuIcon className="h-6 w-6" />
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
