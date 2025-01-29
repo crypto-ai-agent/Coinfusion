@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Home } from "@/pages/Home";
 import { About } from "@/pages/About";
 import { Contact } from "@/pages/Contact";
@@ -17,46 +17,46 @@ import { useToast } from "@/hooks/use-toast";
 import { AdminRoute } from "@/components/AdminRoute";
 import { PrivateRoute } from "@/components/PrivateRoute";
 import Admin from "@/pages/Admin";
+import { Navigation } from "@/components/Navigation";
 
 export default function App() {
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleQuizComplete = async (score: number) => {
     toast({
       title: "Quiz Completed!",
       description: `You earned ${score} points!`,
     });
-    navigate("/education");
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
-        <Route path="/settings" element={<PrivateRoute element={<Settings />} />} />
-        <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
-        <Route path="/education" element={<Education />} />
-        <Route path="/education/:category/:id" element={<ContentViewer />} />
-        <Route 
-          path="/quiz/:quizId" 
-          element={<QuizTaking onComplete={handleQuizComplete} />} 
-        />
-        <Route path="/rankings" element={<Rankings />} />
-        <Route path="/news" element={<NewsPage />} />
-        <Route path="/news/:slug" element={<NewsArticle />} />
-        <Route
-          path="/admin/*"
-          element={
-            <AdminRoute element={<Admin />} />
-          }
-        />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Navigation />
+      <main className="pt-16"> {/* Add padding-top to account for fixed navbar */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
+          <Route path="/settings" element={<PrivateRoute element={<Settings />} />} />
+          <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
+          <Route path="/education" element={<Education />} />
+          <Route path="/education/:category/:id" element={<ContentViewer />} />
+          <Route 
+            path="/quiz/:quizId" 
+            element={<QuizTaking onComplete={handleQuizComplete} />} 
+          />
+          <Route path="/rankings" element={<Rankings />} />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/news/:slug" element={<NewsArticle />} />
+          <Route
+            path="/admin/*"
+            element={<AdminRoute element={<Admin />} />}
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
     </div>
   );
 }
