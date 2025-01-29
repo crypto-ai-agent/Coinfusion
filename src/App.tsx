@@ -32,7 +32,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-16"> {/* Add padding-top to account for fixed navbar */}
+      <main className="pt-16">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
