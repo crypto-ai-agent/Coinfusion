@@ -37,7 +37,7 @@ export default function App() {
         <Route path="/education/:category/:id" element={<ContentViewer />} />
         <Route 
           path="/quiz/:quizId" 
-          <QuizTaking quizId={quizId} onComplete={handleQuizComplete} /> 
+          element={<QuizTaking quizId={quizId} onComplete={handleQuizComplete} />} 
         />
         <Route path="/rankings" element={<Rankings />} />
         <Route path="/news" element={<NewsPage />} />
