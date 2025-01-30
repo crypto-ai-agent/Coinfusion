@@ -9,6 +9,8 @@ interface AdminRouteProps {
 export const AdminRoute = ({ element }: AdminRouteProps) => {
   const { user, isAdmin, isLoading } = useAuth();
 
+  console.log("AdminRoute - Auth State:", { user, isAdmin, isLoading });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -19,10 +21,12 @@ export const AdminRoute = ({ element }: AdminRouteProps) => {
   }
 
   if (!user) {
+    console.log("AdminRoute - No user, redirecting to auth");
     return <Navigate to="/auth" replace />;
   }
 
   if (!isAdmin) {
+    console.log("Access denied: User is not admin");
     return <Navigate to="/" replace />;
   }
 
