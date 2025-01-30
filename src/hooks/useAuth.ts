@@ -15,55 +15,68 @@ export const useAuth = () => {
     isLoading: true,
   });
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthState(prev => ({
-        ...prev,
-        user: session?.user ?? null,
-        isLoading: false,
-      }));
+  const checkAdminStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
 
-      // Check if user is admin
-      if (session?.user) {
-        checkAdminStatus(session.user.id);
+      if (error) {
+        console.error('Error checking admin status:', error);
+        return false;
       }
-    });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setAuthState(prev => ({
-        ...prev,
-        user: session?.user ?? null,
-        isLoading: false,
-      }));
+      return data?.role === 'admin';
+    } catch (error) {
+      console.error('Error in checkAdminStatus:', error);
+      return false;
+    }
+  };
 
+  useEffect(() => {
+    const setupAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          const isAdmin = await checkAdminStatus(session.user.id);
+          setAuthState({
+            user: session.user,
+            isAdmin,
+            isLoading: false,
+          });
+        } else {
+          setAuthState(prev => ({ ...prev, isLoading: false }));
+        }
+      } catch (error) {
+        console.error('Error in setupAuth:', error);
+        setAuthState(prev => ({ ...prev, isLoading: false }));
+      }
+    };
+
+    setupAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        const isAdmin = await checkAdminStatus(session.user.id);
+        setAuthState({
+          user: session.user,
+          isAdmin,
+          isLoading: false,
+        });
       } else {
-        setAuthState(prev => ({ ...prev, isAdmin: false }));
+        setAuthState({
+          user: null,
+          isAdmin: false,
+          isLoading: false,
+        });
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const checkAdminStatus = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
-
-    if (!error && data) {
-      setAuthState(prev => ({
-        ...prev,
-        isAdmin: data.role === 'admin',
-      }));
-    }
-  };
 
   return authState;
 };
