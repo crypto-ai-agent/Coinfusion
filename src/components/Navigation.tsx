@@ -8,7 +8,7 @@ import {
   Menu
 } from "lucide-react";
 
-export const AdminSection = () => {
+const Navigation = () => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
@@ -69,3 +69,7 @@ export const AdminSection = () => {
     </div>
   );
 };
+
+// Export both as default and named export to maintain compatibility
+export default Navigation;
+export { Navigation };
