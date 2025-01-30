@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useParams } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Education } from "@/components/Education";
 import { ContentViewer } from "@/components/education/ContentViewer";
@@ -37,7 +37,11 @@ export default function App() {
         <Route path="/education/:category/:id" element={<ContentViewer />} />
         <Route 
           path="/quiz/:quizId" 
-          element={<QuizTaking quizId={quizId} onComplete={handleQuizComplete} />} 
+          element={
+            <QuizTaking 
+              onComplete={handleQuizComplete} 
+            />
+          } 
         />
         <Route path="/rankings" element={<Rankings />} />
         <Route path="/news" element={<NewsPage />} />
