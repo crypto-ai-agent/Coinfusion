@@ -1,74 +1,24 @@
-import { NavigationLink } from "./NavigationLink";
-import { AuthButtons } from "./AuthButtons";
-import { NavigationItem } from "./types";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-interface MobileMenuProps {
-  isOpen: boolean;
-  navItems: NavigationItem[];
-  currentPath: string;
-  isAuthenticated: boolean;
-  userEmail: string | null;
-  onItemClick: () => void;
-  onLogout: () => void;
-  onSignIn: (e: React.MouseEvent) => void;
-}
+export const MobileMenu = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
-export const MobileMenu = ({
-  navItems,
-  currentPath,
-  isAuthenticated,
-  userEmail,
-  onItemClick,
-  onLogout,
-  onSignIn,
-}: MobileMenuProps) => {
   return (
-    <div className="md:hidden">
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right" className="w-64">
-          <div className="flex flex-col gap-4 mt-4">
-            {navItems.map((item) => (
-              <NavigationLink
-                key={item.href}
-                href={item.href}
-                currentPath={currentPath}
-                onClick={onItemClick}
-                className="px-3 py-2 text-base font-medium hover:text-primary"
-              >
-                {item.name}
-              </NavigationLink>
-            ))}
-            {isAuthenticated && (
-              <>
-                <NavigationLink
-                  href="/dashboard"
-                  currentPath={currentPath}
-                  onClick={onItemClick}
-                  className="px-3 py-2 text-base font-medium hover:text-primary"
-                >
-                  Dashboard
-                </NavigationLink>
-                <div className="px-3 py-2 text-sm text-muted-foreground">
-                  {userEmail}
-                </div>
-              </>
-            )}
-            <AuthButtons
-              isAuthenticated={isAuthenticated}
-              onSignIn={onSignIn}
-              onLogout={onLogout}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+    <div>
+      <button onClick={() => setIsOpen(!isOpen)}>
+        <Menu className="h-5 w-5" />
+      </button>
+      {isOpen && (
+        <div className="absolute bg-white shadow-lg">
+          <Link to="/admin" onClick={() => setIsOpen(false)}>Dashboard</Link>
+          <Link to="/admin/content" onClick={() => setIsOpen(false)}>Educational Content</Link>
+          <Link to="/admin/quizzes" onClick={() => setIsOpen(false)}>Quizzes</Link>
+          <Link to="/admin/news" onClick={() => setIsOpen(false)}>News</Link>
+          <Link to="/admin/users" onClick={() => setIsOpen(false)}>User Profiles</Link>
+        </div>
+      )}
     </div>
   );
 };

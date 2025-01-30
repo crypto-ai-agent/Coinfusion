@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 interface AdminRouteProps {
   element: React.ReactElement;
@@ -14,7 +14,7 @@ export const AdminRoute = ({ element }: AdminRouteProps) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-6 w-6 animate-spin" />
+        <LoaderCircle className="h-6 w-6 animate-spin" />
         <span className="ml-2">Loading...</span>
       </div>
     );
