@@ -1,43 +1,30 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchCryptoPrices } from "@/utils/api";
-import { CryptoTable } from "@/components/rankings/CryptoTable";
-import { CryptoTabs } from "@/components/rankings/CryptoTabs";
-import { WatchlistSection } from "@/components/rankings/WatchlistSection";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Navigation } from "@/components/Navigation";
+import { Rankings as RankingsSection } from "@/components/Rankings";
 
-const Rankings = () => {
-  const { toast } = useToast();
+const RankingsPage = () => {
+  const [searchParams] = useSearchParams();
   
-  const { data: cryptos = [], isLoading, error } = useQuery({
-    queryKey: ['cryptoPrices'],
-    queryFn: fetchCryptoPrices,
-    refetchInterval: 300000, // Refetch every 5 minutes
-    meta: {
-      onError: (error: Error) => {
-        toast({
-          title: "Error fetching crypto data",
-          description: error.message,
-          variant: "destructive",
-        });
-      },
-    },
-  });
-
-  const tokens = cryptos.filter(crypto => !crypto.is_stablecoin);
-  const stablecoins = cryptos.filter(crypto => crypto.is_stablecoin);
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const listId = searchParams.get("list");
+    const action = searchParams.get("action");
+    
+    if (tab === "watchlists") {
+      // The WatchlistSection component will handle these parameters
+      document.getElementById("rankings")?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [searchParams]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Cryptocurrency Rankings</h1>
-      <CryptoTabs 
-        tokens={tokens} 
-        stablecoins={stablecoins} 
-        isLoading={isLoading} 
-      />
-      <CryptoTable data={cryptos} />
-      <WatchlistSection allTokens={cryptos} />
+    <div className="min-h-screen">
+      <Navigation />
+      <div className="pt-20">
+        <RankingsSection />
+      </div>
     </div>
   );
 };
 
-export default Rankings;
+export default RankingsPage;

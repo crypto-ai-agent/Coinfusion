@@ -46,7 +46,8 @@ export const QuizContent = ({ contentId, quizId, onQuizComplete }: QuizContentPr
       <div className="min-h-screen bg-gray-50 py-20">
         <div className="max-w-4xl mx-auto px-4">
           <QuizTaking 
-            onComplete={handleQuizComplete}
+            quizId={quizId} 
+            onComplete={handleQuizComplete} 
           />
         </div>
       </div>

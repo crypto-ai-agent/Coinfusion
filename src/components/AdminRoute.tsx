@@ -1,34 +1,35 @@
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { LoaderCircle } from "lucide-react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-interface AdminRouteProps {
-  element: React.ReactElement;
-}
+export const AdminRoute = () => {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
-export const AdminRoute = ({ element }: AdminRouteProps) => {
-  const { user, isAdmin, isLoading } = useAuth();
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setIsAdmin(false);
+        return;
+      }
 
-  console.log("AdminRoute - Auth State:", { user, isAdmin, isLoading });
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <LoaderCircle className="h-6 w-6 animate-spin" />
-        <span className="ml-2">Loading...</span>
-      </div>
-    );
+      setIsAdmin(data?.role === 'admin');
+    };
+
+    checkAdminStatus();
+  }, []);
+
+  if (isAdmin === null) {
+    return <div>Loading...</div>;
   }
 
-  if (!user) {
-    console.log("AdminRoute - No user, redirecting to auth");
-    return <Navigate to="/auth" replace />;
-  }
-
-  if (!isAdmin) {
-    console.log("Access denied: User is not admin");
-    return <Navigate to="/" replace />;
-  }
-
-  return element;
+  return isAdmin ? <Outlet /> : <Navigate to="/" />;
 };
+
+export default AdminRoute;

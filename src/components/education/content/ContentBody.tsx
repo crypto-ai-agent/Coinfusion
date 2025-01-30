@@ -20,9 +20,10 @@ interface ContentBodyProps {
     }>;
   };
   isCompleted: boolean;
+  onStartQuiz: () => void;
 }
 
-export const ContentBody = ({ content, isCompleted }: ContentBodyProps) => {
+export const ContentBody = ({ content, isCompleted, onStartQuiz }: ContentBodyProps) => {
   const navigate = useNavigate();
   const [readingProgress, setReadingProgress] = useState(0);
   const markAsCompletedMutation = useMarkAsCompleted();
@@ -32,12 +33,6 @@ export const ContentBody = ({ content, isCompleted }: ContentBodyProps) => {
     const { scrollTop, scrollHeight, clientHeight } = element;
     const progress = (scrollTop / (scrollHeight - clientHeight)) * 100;
     setReadingProgress(Math.min(progress, 100));
-  };
-
-  const handleStartQuiz = () => {
-    if (content.quizzes?.[0]) {
-      navigate(`/quiz/${content.quizzes[0].id}`);
-    }
   };
 
   return (
@@ -70,7 +65,7 @@ export const ContentBody = ({ content, isCompleted }: ContentBodyProps) => {
               isCompleted={isCompleted}
               hasQuiz={!!content.quizzes?.length}
               onComplete={() => markAsCompletedMutation.mutate()}
-              onStartQuiz={handleStartQuiz}
+              onStartQuiz={onStartQuiz}
               onBackToHub={() => navigate("/education")}
             />
           </CardContent>

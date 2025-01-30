@@ -1,75 +1,113 @@
-import { Link, useLocation } from "react-router-dom";
-import { 
-  BookOpen, 
-  FileQuestion, 
-  Newspaper, 
-  LayoutDashboard,
-  Users,
-  Menu
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { NavigationLink } from "./navigation/NavigationLink";
+import { AuthButtons } from "./navigation/AuthButtons";
+import { UserMenu } from "./navigation/UserMenu";
+import { useToast } from "@/hooks/use-toast";
+import { MobileMenu } from "./navigation/MobileMenu";
+import { DesktopMenu } from "./navigation/DesktopMenu";
+import { NavigationItem } from "./navigation/types";
+import { Menu } from "lucide-react";
 
-const Navigation = () => {
+const navItems: NavigationItem[] = [
+  { name: "Home", href: "/" },
+  { name: "Rankings", href: "/rankings" },
+  { name: "Education", href: "/education" },
+  { name: "News", href: "/news" },
+];
+
+export const Navigation = () => {
+  const [session, setSession] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const adminLinks = [
-    {
-      name: "Dashboard",
-      href: "/admin",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "Educational Content",
-      href: "/admin/content",
-      icon: BookOpen,
-    },
-    {
-      name: "Quizzes",
-      href: "/admin/quizzes",
-      icon: FileQuestion,
-    },
-    {
-      name: "News",
-      href: "/admin/news",
-      icon: Newspaper,
-    },
-    {
-      name: "User Profiles",
-      href: "/admin/users",
-      icon: Users,
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user.user_metadata.isAdmin) {
+        navigate('/admin');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing out. Please try again.",
+        variant: "destructive",
+      });
     }
-  ];
+  };
+
+  const handleSignIn = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate('/auth');
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="px-2 py-2">
-        <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-sidebar-foreground">
-          Admin Dashboard
-        </h2>
-        <div className="space-y-1">
-          {adminLinks.map((link) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={link.href}
-                to={link.href}
-                className={`flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                  isActive(link.href)
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                <Icon className="mr-2 h-4 w-4" />
-                {link.name}
-              </Link>
-            );
-          })}
+    <nav className="bg-[#1A1F2C]/95 backdrop-blur-lg fixed w-full z-50 border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <NavigationLink 
+              href="/" 
+              currentPath={location.pathname}
+              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8B5CF6] to-[#D946EF]"
+            >
+              CoinFusion
+            </NavigationLink>
+          </div>
+
+          <DesktopMenu 
+            navItems={navItems}
+            currentPath={location.pathname}
+            isAuthenticated={!!session}
+            userEmail={session?.user?.email || null}
+            onLogout={handleSignOut}
+            onSignIn={handleSignIn}
+          />
+
+          <div className="md:hidden flex items-center">
+            <button
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white focus:outline-none"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <MobileMenu 
+        isOpen={isMobileMenuOpen}
+        navItems={navItems}
+        currentPath={location.pathname}
+        isAuthenticated={!!session}
+        userEmail={session?.user?.email || null}
+        onItemClick={() => setIsMobileMenuOpen(false)}
+        onLogout={handleSignOut}
+        onSignIn={handleSignIn}
+      />
+    </nav>
   );
 };
-
-// Export both as default and named export to maintain compatibility
-export default Navigation;
-export { Navigation };
