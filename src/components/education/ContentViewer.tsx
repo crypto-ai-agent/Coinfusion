@@ -39,9 +39,11 @@ export const ContentViewer = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       <ContentBody
-        content={content}
-        isCompleted={isCompleted}
+         content={content}
+         isCompleted={isCompleted}
+         onStartQuiz={() => setShowQuiz(true)}
       />
+
       {content.has_quiz && quizId && (
         <QuizContent
           contentId={content.id}
