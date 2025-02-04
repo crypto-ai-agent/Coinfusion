@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchlistDialog } from "./watchlist/WatchlistDialog";
 import { WatchlistIndicator } from "./watchlist/WatchlistIndicator";
+import { useRealtimePrices } from "@/hooks/useRealtimePrices";
 import type { CoinData } from "@/utils/types/crypto";
 import { useState, useEffect } from "react";
 
@@ -36,12 +37,10 @@ export const CryptoTable = ({
   const [coinToAdd, setCoinToAdd] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (showWatchlistActions) {
-      fetchWatchlists();
-      fetchAllWatchlistItems();
-    }
-  }, [showWatchlistActions]);
+  // Get real-time prices for all coins in the table
+  const { prices: realtimePrices, isLoading: pricesLoading } = useRealtimePrices(
+    data.map(coin => coin.id)
+  );
 
   const fetchWatchlists = async () => {
     const { data: watchlistsData, error } = await supabase
@@ -109,22 +108,8 @@ export const CryptoTable = ({
     setShowWatchlistDialog(true);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  };
-
-  const formatMarketCap = (marketCap: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    }).format(marketCap);
+  const getUpdatedPrice = (coin: CoinData) => {
+    return realtimePrices[coin.id] || coin;
   };
 
   return (
@@ -144,47 +129,56 @@ export const CryptoTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((crypto) => (
-            <TableRow key={crypto.symbol}>
-              <TableCell className="font-medium">
-                <Link to={`/crypto/${crypto.id}`} className="flex items-center hover:text-primary">
-                  <span className="mr-2 text-gray-900">{crypto.name}</span>
-                  <span className="text-gray-500 text-sm">{crypto.symbol}</span>
-                </Link>
-              </TableCell>
-              <TableCell className="text-gray-900">{formatPrice(crypto.price_usd)}</TableCell>
-              <TableCell>
-                <PriceChange value={crypto.percent_change_24h} />
-              </TableCell>
-              <TableCell className="hidden md:table-cell text-gray-900">
-                {formatMarketCap(crypto.market_cap_usd)}
-              </TableCell>
-              <TableCell className="hidden lg:table-cell text-gray-900">
-                {formatMarketCap(crypto.volume_24h_usd)}
-              </TableCell>
-              <TableCell className="hidden xl:table-cell text-gray-900">
-                {crypto.type}
-              </TableCell>
-              {showWatchlistActions && (
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => handleAddToWatchlist(crypto.id)}
-                      size="sm"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add
-                    </Button>
-                    
-                    <WatchlistIndicator 
-                      watchlists={coinWatchlists[crypto.id] || []}
-                    />
-                  </div>
+          {data.map((crypto) => {
+            const updatedCrypto = getUpdatedPrice(crypto);
+            return (
+              <TableRow key={crypto.symbol}>
+                <TableCell className="font-medium">
+                  <Link to={`/crypto/${crypto.id}`} className="flex items-center hover:text-primary">
+                    <span className="mr-2 text-gray-900">{crypto.name}</span>
+                    <span className="text-gray-500 text-sm">{crypto.symbol}</span>
+                  </Link>
                 </TableCell>
-              )}
-            </TableRow>
-          ))}
+                <TableCell className="text-gray-900">
+                  {pricesLoading ? (
+                    <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
+                  ) : (
+                    formatPrice(updatedCrypto.price_usd)
+                  )}
+                </TableCell>
+                <TableCell>
+                  <PriceChange value={updatedCrypto.percent_change_24h} />
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-gray-900">
+                  {formatMarketCap(updatedCrypto.market_cap_usd)}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell text-gray-900">
+                  {formatMarketCap(updatedCrypto.volume_24h_usd)}
+                </TableCell>
+                <TableCell className="hidden xl:table-cell text-gray-900">
+                  {updatedCrypto.type}
+                </TableCell>
+                {showWatchlistActions && (
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handleAddToWatchlist(crypto.id)}
+                        size="sm"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
+                      
+                      <WatchlistIndicator 
+                        watchlists={coinWatchlists[crypto.id] || []}
+                      />
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
 

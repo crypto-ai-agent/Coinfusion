@@ -1,4 +1,4 @@
-import { CoinData, CryptoDetails } from '../types/crypto';
+import { CoinData, CryptoDetails, PriceHistoryData } from '../types/crypto';
 import { retryWithBackoff } from '../helpers/retryLogic';
 import { getCachedData, setCachedData } from './cacheManager';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +10,61 @@ const invokeCryptoProxy = async (endpoint: string) => {
 
   if (error) throw error;
   return data;
+};
+
+const invokeCryptoData = async (action: string, params: any) => {
+  const { data, error } = await supabase.functions.invoke('crypto-data', {
+    body: { action, params }
+  });
+
+  if (error) throw error;
+  return data;
+};
+
+export const fetchHistoricalData = async (
+  id: string,
+  interval: string = 'daily',
+  count: number = 30
+): Promise<PriceHistoryData[]> => {
+  const cacheKey = `historical_${id}_${interval}_${count}`;
+  const cachedData = getCachedData<PriceHistoryData[]>(cacheKey);
+  
+  if (cachedData) {
+    return cachedData;
+  }
+
+  const response = await invokeCryptoData('historical', { id, interval, count });
+  
+  const priceHistory = response.data.quotes.map((quote: any) => ({
+    date: quote.timestamp,
+    price: quote.quote.USD.close,
+    volume: quote.quote.USD.volume
+  }));
+
+  setCachedData(cacheKey, priceHistory);
+  return priceHistory;
+};
+
+export const fetchRealtimePrices = async (ids: string[]): Promise<Record<string, CoinData>> => {
+  const response = await invokeCryptoData('realtime', { ids });
+  
+  const prices: Record<string, CoinData> = {};
+  
+  Object.entries(response.data).forEach(([id, data]: [string, any]) => {
+    prices[id] = {
+      id,
+      name: data.name,
+      symbol: data.symbol,
+      price_usd: data.quote.USD.price,
+      percent_change_24h: data.quote.USD.percent_change_24h,
+      market_cap_usd: data.quote.USD.market_cap,
+      volume_24h_usd: data.quote.USD.volume,
+      is_stablecoin: data.tags?.includes('stablecoin') || false,
+      type: data.tags?.includes('stablecoin') ? 'stablecoin' : 'cryptocurrency'
+    };
+  });
+
+  return prices;
 };
 
 export const fetchCryptoDetails = async (id: string): Promise<CryptoDetails> => {
@@ -37,7 +92,7 @@ export const fetchCryptoDetails = async (id: string): Promise<CryptoDetails> => 
       price_usd: ticker.quote.USD.price,
       percent_change_24h: ticker.quote.USD.percent_change_24h,
       market_cap_usd: ticker.quote.USD.market_cap,
-      volume_24h_usd: ticker.quote.USD.volume_24h,
+      volume_24h_usd: ticker.quote.USD.volume,
       is_stablecoin: coin.tags?.includes('stablecoin') || false,
       type: coin.tags?.includes('stablecoin') ? 'stablecoin' : 'cryptocurrency',
       contract_address: coin.platform?.token_address || '',
@@ -88,7 +143,7 @@ export const fetchCryptoPrices = async (): Promise<CoinData[]> => {
       price_usd: coin.quote.USD.price,
       percent_change_24h: coin.quote.USD.percent_change_24h,
       market_cap_usd: coin.quote.USD.market_cap,
-      volume_24h_usd: coin.quote.USD.volume_24h,
+      volume_24h_usd: coin.quote.USD.volume,
       is_stablecoin: coin.tags?.includes('stablecoin') || false,
       type: coin.tags?.includes('stablecoin') ? 'stablecoin' : 'cryptocurrency'
     }));
