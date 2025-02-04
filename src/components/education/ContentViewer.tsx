@@ -5,6 +5,7 @@ import { ErrorState } from "./content/ErrorState";
 import { QuizContent } from "./content/QuizContent";
 import { useContentLoader } from "./content/ContentLoader";
 import { useUserProgressTracker } from "./content/UserProgressTracker";
+import { useState } from "react";
 
 export type ContentType = {
   id: string;
@@ -27,6 +28,7 @@ export type ContentType = {
 export const ContentViewer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [showQuiz, setShowQuiz] = useState(false);
   const { data: content, isLoading, error } = useContentLoader(id);
   const { data: userProgress } = useUserProgressTracker(id);
 

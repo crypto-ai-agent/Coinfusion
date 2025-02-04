@@ -18,13 +18,25 @@ import Rankings from "@/pages/Rankings";
 import NewsPage from "@/pages/News";
 import NewsArticle from "@/pages/NewsArticle";
 
-export default function App() {
+const QuizWrapper = () => {
+  const { quizId } = useParams();
   const navigate = useNavigate();
 
   const handleQuizComplete = async (score: number) => {
     navigate("/education");
   };
 
+  if (!quizId) return null;
+
+  return (
+    <QuizTaking 
+      quizId={quizId}
+      onComplete={handleQuizComplete}
+    />
+  );
+};
+
+export default function App() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -35,14 +47,7 @@ export default function App() {
         <Route path="/education" element={<Education />} />
         <Route path="/education/content/:id" element={<ContentViewer />} />
         <Route path="/education/:category/:id" element={<ContentViewer />} />
-        <Route 
-          path="/quiz/:quizId" 
-          element={
-            <QuizTaking 
-              onComplete={handleQuizComplete} 
-            />
-          } 
-        />
+        <Route path="/quiz/:quizId" element={<QuizWrapper />} />
         <Route path="/rankings" element={<Rankings />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/news/:slug" element={<NewsArticle />} />
