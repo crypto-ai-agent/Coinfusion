@@ -37,20 +37,20 @@ export const CryptoTableRow = ({
         {pricesLoading ? (
           <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
         ) : (
-          formatPrice(updatedCrypto.price_usd)
+          formatPrice(updatedCrypto?.price_usd)
         )}
       </TableCell>
       <TableCell>
-        <PriceChange value={updatedCrypto.percent_change_24h} />
+        <PriceChange value={updatedCrypto?.percent_change_24h} />
       </TableCell>
       <TableCell className="hidden md:table-cell text-gray-900">
-        {formatMarketCap(updatedCrypto.market_cap_usd)}
+        {formatMarketCap(updatedCrypto?.market_cap_usd)}
       </TableCell>
       <TableCell className="hidden lg:table-cell text-gray-900">
-        {formatMarketCap(updatedCrypto.volume_24h_usd)}
+        {formatMarketCap(updatedCrypto?.volume_24h_usd)}
       </TableCell>
       <TableCell className="hidden xl:table-cell text-gray-900">
-        {updatedCrypto.type}
+        {updatedCrypto?.type || 'N/A'}
       </TableCell>
       {showWatchlistActions && (
         <TableCell>
