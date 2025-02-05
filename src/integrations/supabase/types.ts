@@ -833,6 +833,8 @@ export type Database = {
       watchlists: {
         Row: {
           created_at: string | null
+          default_sort_by: string | null
+          default_sort_order: string | null
           description: string | null
           id: string
           list_type: string | null
@@ -842,6 +844,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          default_sort_by?: string | null
+          default_sort_order?: string | null
           description?: string | null
           id?: string
           list_type?: string | null
@@ -851,6 +855,8 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          default_sort_by?: string | null
+          default_sort_order?: string | null
           description?: string | null
           id?: string
           list_type?: string | null

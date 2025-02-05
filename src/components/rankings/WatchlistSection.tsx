@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, List } from "lucide-react";
+import { Plus, List, ArrowUpDown } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import type { CoinData } from "@/utils/types/crypto";
 
@@ -32,6 +39,8 @@ interface Watchlist {
   name: string;
   description: string | null;
   list_type: string;
+  default_sort_by: string;
+  default_sort_order: string;
 }
 
 interface WatchlistItem {
@@ -47,6 +56,13 @@ const predefinedCategories = [
   { value: "custom", label: "Custom" },
 ];
 
+const sortOptions = [
+  { value: "market_cap", label: "Market Cap" },
+  { value: "price", label: "Price" },
+  { value: "volume", label: "Volume" },
+  { value: "change", label: "24h Change" },
+];
+
 export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
   const [watchlists, setWatchlists] = useState<Watchlist[]>([]);
   const [selectedWatchlist, setSelectedWatchlist] = useState<string | null>(null);
@@ -55,11 +71,36 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
   const [newListName, setNewListName] = useState("");
   const [newListType, setNewListType] = useState("custom");
   const [newListDescription, setNewListDescription] = useState("");
+  const [sortBy, setSortBy] = useState("market_cap");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchWatchlists();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('watchlist-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'watchlist_items'
+        },
+        (payload) => {
+          if (selectedWatchlist) {
+            fetchWatchlistItems(selectedWatchlist);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -93,6 +134,8 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
     setWatchlists(data);
     if (data.length > 0 && !selectedWatchlist) {
       setSelectedWatchlist(data[0].id);
+      setSortBy(data[0].default_sort_by || "market_cap");
+      setSortOrder(data[0].default_sort_order as "asc" | "desc" || "desc");
     }
   };
 
@@ -129,6 +172,8 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
         list_type: newListType,
         description: newListDescription,
         user_id: session.session.user.id,
+        default_sort_by: sortBy,
+        default_sort_order: sortOrder,
       })
       .select()
       .single();
@@ -156,20 +201,71 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
 
   const handleWatchlistChange = (watchlistId: string) => {
     setSelectedWatchlist(watchlistId);
+    const selectedList = watchlists.find(w => w.id === watchlistId);
+    if (selectedList) {
+      setSortBy(selectedList.default_sort_by || "market_cap");
+      setSortOrder(selectedList.default_sort_order as "asc" | "desc" || "desc");
+    }
+  };
+
+  const handleSortChange = async (value: string) => {
+    setSortBy(value);
+    if (selectedWatchlist) {
+      await supabase
+        .from("watchlists")
+        .update({ default_sort_by: value })
+        .eq("id", selectedWatchlist);
+    }
+  };
+
+  const toggleSortOrder = async () => {
+    const newOrder = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(newOrder);
+    if (selectedWatchlist) {
+      await supabase
+        .from("watchlists")
+        .update({ default_sort_order: newOrder })
+        .eq("id", selectedWatchlist);
+    }
   };
 
   const filteredTokens = watchlistItems.length > 0
-    ? allTokens.filter(token => 
-        watchlistItems.some(item => item.coin_id === token.id)
-      )
+    ? allTokens
+        .filter(token => 
+          watchlistItems.some(item => item.coin_id === token.id) &&
+          (searchQuery 
+            ? token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+            : true)
+        )
+        .sort((a, b) => {
+          let comparison = 0;
+          switch (sortBy) {
+            case "market_cap":
+              comparison = (b.market_cap_usd || 0) - (a.market_cap_usd || 0);
+              break;
+            case "price":
+              comparison = (b.price_usd || 0) - (a.price_usd || 0);
+              break;
+            case "volume":
+              comparison = (b.volume_24h_usd || 0) - (a.volume_24h_usd || 0);
+              break;
+            case "change":
+              comparison = (b.percent_change_24h || 0) - (a.percent_change_24h || 0);
+              break;
+            default:
+              comparison = (b.market_cap_usd || 0) - (a.market_cap_usd || 0);
+          }
+          return sortOrder === "asc" ? -comparison : comparison;
+        })
     : [];
 
   const selectedWatchlistData = watchlists.find(w => w.id === selectedWatchlist);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col md:flex-row gap-4 md:items-center">
           <Select value={selectedWatchlist || ""} onValueChange={handleWatchlistChange}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select a list" />
@@ -187,57 +283,85 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
           )}
         </div>
 
-        <Dialog open={isCreatingList} onOpenChange={setIsCreatingList}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create New List
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Watchlist</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="listName">List Name</Label>
-                <Input
-                  id="listName"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  placeholder="My Watchlist"
-                />
-              </div>
-              <div>
-                <Label htmlFor="listType">List Type</Label>
-                <Select value={newListType} onValueChange={setNewListType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {predefinedCategories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="listDescription">Description (Optional)</Label>
-                <Input
-                  id="listDescription"
-                  value={newListDescription}
-                  onChange={(e) => setNewListDescription(e.target.value)}
-                  placeholder="Description of your watchlist"
-                />
-              </div>
-              <Button onClick={createWatchlist} className="w-full">
-                Create Watchlist
+        <div className="flex gap-2">
+          <Input
+            placeholder="Search coins..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-[200px]"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                Sort by: {sortOptions.find(opt => opt.value === sortBy)?.label}
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {sortOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => handleSortChange(option.value)}
+                >
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="outline" onClick={toggleSortOrder}>
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+          <Dialog open={isCreatingList} onOpenChange={setIsCreatingList}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create New List
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Watchlist</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="listName">List Name</Label>
+                  <Input
+                    id="listName"
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    placeholder="My Watchlist"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="listType">List Type</Label>
+                  <Select value={newListType} onValueChange={setNewListType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {predefinedCategories.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="listDescription">Description (Optional)</Label>
+                  <Input
+                    id="listDescription"
+                    value={newListDescription}
+                    onChange={(e) => setNewListDescription(e.target.value)}
+                    placeholder="Description of your watchlist"
+                  />
+                </div>
+                <Button onClick={createWatchlist} className="w-full">
+                  Create Watchlist
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {watchlists.length === 0 ? (
