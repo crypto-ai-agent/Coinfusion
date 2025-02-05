@@ -1,6 +1,8 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Bar, ComposedChart } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PriceHistoryData {
   date: string;
@@ -10,28 +12,63 @@ interface PriceHistoryData {
 
 interface CryptoPriceChartProps {
   price_history: PriceHistoryData[];
+  coin_id: string;
 }
 
-export const CryptoPriceChart = ({ price_history }: CryptoPriceChartProps) => {
+export const CryptoPriceChart = ({ price_history, coin_id }: CryptoPriceChartProps) => {
   const [timeframe, setTimeframe] = useState("24h");
+  const [historicalData, setHistoricalData] = useState<PriceHistoryData[]>(price_history);
+
+  useEffect(() => {
+    const fetchHistoricalData = async () => {
+      const intervalMap = {
+        "24h": { hours: 24 },
+        "7d": { days: 7 },
+        "1m": { days: 30 },
+        "1y": { days: 365 },
+      };
+
+      const interval = intervalMap[timeframe as keyof typeof intervalMap];
+      const { data, error } = await supabase
+        .from('price_history')
+        .select('price_usd, volume_24h_usd, timestamp')
+        .eq('coin_id', coin_id)
+        .gte('timestamp', new Date(Date.now() - (interval.days || interval.hours * 24) * 24 * 60 * 60 * 1000).toISOString())
+        .order('timestamp', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching historical data:', error);
+        return;
+      }
+
+      const formattedData = data.map(item => ({
+        date: item.timestamp,
+        price: item.price_usd,
+        volume: item.volume_24h_usd || 0
+      }));
+
+      setHistoricalData(formattedData);
+    };
+
+    fetchHistoricalData();
+  }, [timeframe, coin_id]);
 
   return (
-    <section className="bg-white rounded-lg shadow-lg p-6">
+    <section className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <Tabs defaultValue="24h" onValueChange={setTimeframe}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Price Chart</h2>
+          <h2 className="text-2xl font-bold dark:text-white">Price Chart</h2>
           <TabsList>
             <TabsTrigger value="24h">24h</TabsTrigger>
             <TabsTrigger value="7d">7d</TabsTrigger>
             <TabsTrigger value="1m">1m</TabsTrigger>
             <TabsTrigger value="1y">1y</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
           </TabsList>
         </div>
         
         <TabsContent value={timeframe} className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={price_history}>
+            <ComposedChart data={historicalData}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#1a365d" stopOpacity={0.8}/>
@@ -69,7 +106,7 @@ export const CryptoPriceChart = ({ price_history }: CryptoPriceChartProps) => {
                     const price = Number(payload[0].value);
                     const volume = Number(payload[1].value);
                     return (
-                      <div className="bg-white p-4 border rounded shadow-lg">
+                      <div className="bg-white dark:bg-gray-800 p-4 border rounded shadow-lg">
                         <p className="font-bold">${price.toLocaleString()}</p>
                         <p className="text-sm text-gray-500">
                           {new Date(payload[0].payload.date).toLocaleString()}

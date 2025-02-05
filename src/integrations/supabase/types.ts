@@ -288,6 +288,42 @@ export type Database = {
         }
         Relationships: []
       }
+      price_alerts: {
+        Row: {
+          alert_type: string
+          coin_id: string
+          created_at: string | null
+          id: string
+          is_triggered: boolean | null
+          notification_sent: boolean | null
+          target_price: number
+          triggered_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          coin_id: string
+          created_at?: string | null
+          id?: string
+          is_triggered?: boolean | null
+          notification_sent?: boolean | null
+          target_price: number
+          triggered_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          coin_id?: string
+          created_at?: string | null
+          id?: string
+          is_triggered?: boolean | null
+          notification_sent?: boolean | null
+          target_price?: number
+          triggered_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       price_history: {
         Row: {
           coin_id: string
@@ -722,6 +758,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_price_history: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_unique_slug: {
         Args: {
           base_slug: string
