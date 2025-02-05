@@ -15,25 +15,37 @@ interface CryptoPriceChartProps {
   coin_id: string;
 }
 
+type TimeframeInterval = {
+  value: number;
+  unit: 'hours' | 'days';
+};
+
 export const CryptoPriceChart = ({ price_history, coin_id }: CryptoPriceChartProps) => {
   const [timeframe, setTimeframe] = useState("24h");
   const [historicalData, setHistoricalData] = useState<PriceHistoryData[]>(price_history);
 
   useEffect(() => {
     const fetchHistoricalData = async () => {
-      const intervalMap = {
-        "24h": { hours: 24 },
-        "7d": { days: 7 },
-        "1m": { days: 30 },
-        "1y": { days: 365 },
+      const intervalMap: Record<string, TimeframeInterval> = {
+        "24h": { value: 24, unit: 'hours' },
+        "7d": { value: 7, unit: 'days' },
+        "1m": { value: 30, unit: 'days' },
+        "1y": { value: 365, unit: 'days' },
       };
 
-      const interval = intervalMap[timeframe as keyof typeof intervalMap];
+      const interval = intervalMap[timeframe];
+      const timeAgo = new Date();
+      if (interval.unit === 'hours') {
+        timeAgo.setHours(timeAgo.getHours() - interval.value);
+      } else {
+        timeAgo.setDate(timeAgo.getDate() - interval.value);
+      }
+
       const { data, error } = await supabase
         .from('price_history')
         .select('price_usd, volume_24h_usd, timestamp')
         .eq('coin_id', coin_id)
-        .gte('timestamp', new Date(Date.now() - (interval.days || interval.hours * 24) * 24 * 60 * 60 * 1000).toISOString())
+        .gte('timestamp', timeAgo.toISOString())
         .order('timestamp', { ascending: true });
 
       if (error) {

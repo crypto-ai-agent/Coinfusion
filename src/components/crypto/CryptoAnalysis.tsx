@@ -1,3 +1,4 @@
+
 import { CryptoPriceChart } from "./CryptoPriceChart";
 
 interface CryptoAnalysisProps {
@@ -12,6 +13,7 @@ interface CryptoAnalysisProps {
     price: number;
     volume: number;
   }>;
+  coin_id: string;  // Added this prop
 }
 
 export const CryptoAnalysis = ({
@@ -22,6 +24,7 @@ export const CryptoAnalysis = ({
   low_24h,
   price_usd,
   price_history,
+  coin_id,  // Added this prop
 }: CryptoAnalysisProps) => {
   const priceRange = ((high_24h - low_24h) / low_24h) * 100;
   
@@ -29,7 +32,7 @@ export const CryptoAnalysis = ({
     <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
       <h2 className="text-2xl font-bold mb-4">Analysis</h2>
       
-      <CryptoPriceChart price_history={price_history} />
+      <CryptoPriceChart price_history={price_history} coin_id={coin_id} />
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">

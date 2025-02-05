@@ -1,3 +1,4 @@
+
 import { CryptoHeader } from "./CryptoHeader";
 import { CryptoMarketStats } from "./CryptoMarketStats";
 import { CryptoAlerts } from "./CryptoAlerts";
@@ -13,6 +14,7 @@ interface CryptoMainInfoProps {
   circulating_supply: number;
   max_supply: number;
   alerts?: string[];
+  coin_id: string;  // Added this prop
 }
 
 export const CryptoMainInfo = ({
@@ -26,6 +28,7 @@ export const CryptoMainInfo = ({
   circulating_supply,
   max_supply,
   alerts,
+  coin_id,  // Added this prop
 }: CryptoMainInfoProps) => {
   return (
     <section className="bg-white rounded-lg shadow-lg p-6">
@@ -45,7 +48,11 @@ export const CryptoMainInfo = ({
         symbol={symbol}
       />
 
-      <CryptoAlerts alerts={alerts} />
+      <CryptoAlerts 
+        alerts={alerts}
+        coinId={coin_id}
+        currentPrice={price_usd}
+      />
     </section>
   );
 };
