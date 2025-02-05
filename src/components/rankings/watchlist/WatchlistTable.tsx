@@ -1,8 +1,10 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "react-router-dom";
 import { PriceChange } from "@/components/shared/PriceChange";
 import type { CoinData } from "@/utils/types/crypto";
 import { WatchlistActions } from "./WatchlistActions";
+import { formatPrice, formatMarketCap } from "@/utils/formatters";
 
 interface WatchlistTableProps {
   data: CoinData[];
@@ -11,24 +13,6 @@ interface WatchlistTableProps {
 }
 
 export const WatchlistTable = ({ data, watchlistId, onUpdate }: WatchlistTableProps) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  };
-
-  const formatMarketCap = (marketCap: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    }).format(marketCap);
-  };
-
   return (
     <Table>
       <TableHeader>

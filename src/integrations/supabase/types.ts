@@ -288,6 +288,33 @@ export type Database = {
         }
         Relationships: []
       }
+      price_history: {
+        Row: {
+          coin_id: string
+          id: string
+          market_cap_usd: number | null
+          price_usd: number
+          timestamp: string | null
+          volume_24h_usd: number | null
+        }
+        Insert: {
+          coin_id: string
+          id?: string
+          market_cap_usd?: number | null
+          price_usd: number
+          timestamp?: string | null
+          volume_24h_usd?: number | null
+        }
+        Update: {
+          coin_id?: string
+          id?: string
+          market_cap_usd?: number | null
+          price_usd?: number
+          timestamp?: string | null
+          volume_24h_usd?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
