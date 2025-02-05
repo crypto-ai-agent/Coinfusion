@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      content_audit_log: {
+        Row: {
+          action: string
+          changes: Json | null
+          content_id: string
+          content_type: string
+          created_at: string | null
+          id: number
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          id?: number
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          id?: number
+          performed_by?: string | null
+        }
+        Relationships: []
+      }
       content_cards: {
         Row: {
           card_type: Database["public"]["Enums"]["card_type"]
@@ -60,6 +90,41 @@ export type Database = {
         }
         Relationships: []
       }
+      content_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          name: string
+          parent_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name: string
+          parent_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name?: string
+          parent_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "content_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       educational_content: {
         Row: {
           author_id: string
@@ -69,8 +134,15 @@ export type Database = {
           created_at: string | null
           has_quiz: boolean | null
           id: string
+          last_reviewed_at: string | null
+          primary_category: string | null
           published: boolean | null
+          review_notes: string | null
+          reviewed_by: string | null
+          secondary_categories: string[] | null
           slug: string
+          status: string | null
+          tags: string[] | null
           title: string
           updated_at: string | null
         }
@@ -82,8 +154,15 @@ export type Database = {
           created_at?: string | null
           has_quiz?: boolean | null
           id?: string
+          last_reviewed_at?: string | null
+          primary_category?: string | null
           published?: boolean | null
+          review_notes?: string | null
+          reviewed_by?: string | null
+          secondary_categories?: string[] | null
           slug: string
+          status?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string | null
         }
@@ -95,8 +174,15 @@ export type Database = {
           created_at?: string | null
           has_quiz?: boolean | null
           id?: string
+          last_reviewed_at?: string | null
+          primary_category?: string | null
           published?: boolean | null
+          review_notes?: string | null
+          reviewed_by?: string | null
+          secondary_categories?: string[] | null
           slug?: string
+          status?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string | null
         }
@@ -151,9 +237,16 @@ export type Database = {
           description: string
           difficulty: string
           id: string
+          last_reviewed_at: string | null
           points: number | null
+          primary_category: string | null
           progress: number | null
           read_time: string
+          review_notes: string | null
+          reviewed_by: string | null
+          secondary_categories: string[] | null
+          status: string | null
+          tags: string[] | null
           title: string
           updated_at: string | null
         }
@@ -163,9 +256,16 @@ export type Database = {
           description: string
           difficulty: string
           id?: string
+          last_reviewed_at?: string | null
           points?: number | null
+          primary_category?: string | null
           progress?: number | null
           read_time: string
+          review_notes?: string | null
+          reviewed_by?: string | null
+          secondary_categories?: string[] | null
+          status?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string | null
         }
@@ -175,9 +275,16 @@ export type Database = {
           description?: string
           difficulty?: string
           id?: string
+          last_reviewed_at?: string | null
           points?: number | null
+          primary_category?: string | null
           progress?: number | null
           read_time?: string
+          review_notes?: string | null
+          reviewed_by?: string | null
+          secondary_categories?: string[] | null
+          status?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string | null
         }
