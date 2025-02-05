@@ -357,7 +357,10 @@ export type Database = {
       quiz_attempts: {
         Row: {
           answers: Json
+          attempt_number: number | null
           completed_at: string | null
+          duration_minutes: number | null
+          feedback: string | null
           id: string
           quiz_id: string | null
           score: number
@@ -365,7 +368,10 @@ export type Database = {
         }
         Insert: {
           answers: Json
+          attempt_number?: number | null
           completed_at?: string | null
+          duration_minutes?: number | null
+          feedback?: string | null
           id?: string
           quiz_id?: string | null
           score: number
@@ -373,7 +379,10 @@ export type Database = {
         }
         Update: {
           answers?: Json
+          attempt_number?: number | null
           completed_at?: string | null
+          duration_minutes?: number | null
+          feedback?: string | null
           id?: string
           quiz_id?: string | null
           score?: number

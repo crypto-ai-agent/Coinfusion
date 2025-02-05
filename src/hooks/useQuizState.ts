@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useQuizProgressTracking } from './useQuizProgressTracking';
 import { validateQuizCompletion, calculateQuizScore } from '../services/quizValidation';
 import { useToast } from './use-toast';
@@ -7,8 +8,13 @@ export const useQuizState = (quizId: string) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isComplete, setIsComplete] = useState(false);
+  const [startTime, setStartTime] = useState<Date>(new Date());
   const { submitQuizProgress, isSubmitting } = useQuizProgressTracking(quizId);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setStartTime(new Date());
+  }, []);
 
   const handleAnswer = (questionId: string, answer: string) => {
     setAnswers(prev => ({
@@ -21,7 +27,10 @@ export const useQuizState = (quizId: string) => {
     if (isSubmitting) return;
 
     const score = calculateQuizScore(answers, correctAnswers);
-    await submitQuizProgress(score, answers);
+    const endTime = new Date();
+    const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
+
+    await submitQuizProgress(score, answers, durationMinutes);
     setIsComplete(true);
   };
 
@@ -29,6 +38,7 @@ export const useQuizState = (quizId: string) => {
     setCurrentQuestion(0);
     setAnswers({});
     setIsComplete(false);
+    setStartTime(new Date());
   };
 
   return {
