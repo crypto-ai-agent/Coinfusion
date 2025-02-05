@@ -1,3 +1,4 @@
+
 /**
  * Component that displays detailed information about a cryptocurrency
  * @component
@@ -54,9 +55,10 @@ export const CryptoDetailsView = ({ cryptoId }: CryptoDetailsViewProps) => {
             circulating_supply={crypto.circulating_supply}
             max_supply={crypto.max_supply}
             alerts={crypto.alerts}
+            coin_id={cryptoId}
           />
 
-          <CryptoTabs crypto={crypto} />
+          <CryptoTabs crypto={{ ...crypto, coin_id: cryptoId }} />
 
           <CryptoLinks
             website={crypto.website}

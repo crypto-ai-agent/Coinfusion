@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CryptoOverview } from "./CryptoOverview";
 import { CryptoAnalysis } from "./CryptoAnalysis";
@@ -5,7 +6,7 @@ import { CryptoInvestmentTips } from "./CryptoInvestmentTips";
 import type { CryptoDetails } from "@/utils/types/crypto";
 
 interface CryptoTabsProps {
-  crypto: CryptoDetails;
+  crypto: CryptoDetails & { coin_id: string };
 }
 
 /**
@@ -42,6 +43,7 @@ export const CryptoTabs = ({ crypto }: CryptoTabsProps) => {
           low_24h={crypto.low_24h}
           price_usd={crypto.price_usd}
           price_history={crypto.price_history}
+          coin_id={crypto.coin_id}
         />
       </TabsContent>
       
