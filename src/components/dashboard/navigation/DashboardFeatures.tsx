@@ -1,3 +1,4 @@
+
 import {
   BarChart3,
   BookOpen,
@@ -9,6 +10,7 @@ import {
   Key,
   Ticket,
   Users,
+  History,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -52,6 +54,12 @@ const features = [
     comingSoon: false,
   },
   {
+    title: "Quiz History",
+    icon: History,
+    comingSoon: false,
+    path: "/quiz-history",
+  },
+  {
     title: "API Access",
     icon: Key,
     comingSoon: true,
@@ -89,7 +97,7 @@ export function DashboardFeatures() {
                 className="w-full justify-start gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md px-3 py-2 text-sm"
                 onClick={() => {
                   if (!feature.comingSoon) {
-                    navigate(`/dashboard/${feature.title.toLowerCase()}`);
+                    navigate(feature.path || `/dashboard/${feature.title.toLowerCase()}`);
                   }
                 }}
                 disabled={feature.comingSoon}
