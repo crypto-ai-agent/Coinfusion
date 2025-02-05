@@ -1,3 +1,4 @@
+
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CryptoTabs } from '@/components/crypto/CryptoTabs';
 import { describe, it, expect } from 'vitest';
@@ -33,6 +34,7 @@ const mockCryptoData = {
   total_supply: 21000000,
   website: 'bitcoin.org',
   percent_change_24h: 2.5,
+  coin_id: 'btc-bitcoin'  // Added this line
 };
 
 describe('CryptoTabs', () => {
