@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentForm } from "@/components/admin/ContentForm";
 import { ContentTable } from "@/components/admin/ContentTable";
@@ -18,6 +18,7 @@ export const EducationalContentManager = () => {
   const [quizContent, setQuizContent] = useState<Content | null>(null);
   const [isCreatingNewQuiz, setIsCreatingNewQuiz] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: content, isLoading } = useQuery({
     queryKey: ['educationalContent', selectedContentType],

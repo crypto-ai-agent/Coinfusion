@@ -2,12 +2,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { CoinData } from "@/utils/types/crypto";
-import { WatchlistHeader } from "./watchlist/WatchlistHeader";
-import { WatchlistControls } from "./watchlist/WatchlistControls";
-import { WatchlistContent } from "./watchlist/WatchlistContent";
+import { WatchlistHeader } from "./WatchlistHeader";
+import { WatchlistControls } from "./WatchlistControls";
+import { WatchlistContent } from "./WatchlistContent";
 
 interface WatchlistSectionProps {
   allTokens: CoinData[];
@@ -242,7 +242,7 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
         watchlistItems={watchlistItems}
         filteredTokens={filteredTokens}
         onUpdate={() => selectedWatchlist && fetchWatchlistItems(selectedWatchlist)}
-        onCreateList={() => setIsCreatingList(true)}
+        onCreateList={createWatchlist}
       />
     </div>
   );

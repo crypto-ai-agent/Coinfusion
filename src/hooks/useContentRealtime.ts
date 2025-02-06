@@ -3,6 +3,11 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface ContentRecord {
+  title: string;
+  [key: string]: any;
+}
+
 export const useContentRealtime = (
   contentType: 'guide' | 'educational' | 'news',
   onUpdate?: () => void
@@ -10,7 +15,6 @@ export const useContentRealtime = (
   const { toast } = useToast();
 
   useEffect(() => {
-    // Determine the table name based on content type
     const tableName = contentType === 'news' 
       ? 'news_articles' 
       : contentType === 'guide' 
@@ -30,15 +34,13 @@ export const useContentRealtime = (
           console.log('Content change detected:', payload);
           
           const changeType = payload.eventType;
-          const record = payload.new || payload.old;
+          const record = payload.new || payload.old as ContentRecord;
           
-          // Show a toast notification for the change
           toast({
             title: `Content ${changeType}`,
             description: `${record.title} has been ${changeType === 'INSERT' ? 'created' : changeType === 'UPDATE' ? 'updated' : 'deleted'}`,
           });
 
-          // Call the callback if provided
           if (onUpdate) {
             onUpdate();
           }
