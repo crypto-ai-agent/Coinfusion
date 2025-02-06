@@ -34,12 +34,14 @@ export const useContentRealtime = (
           console.log('Content change detected:', payload);
           
           const changeType = payload.eventType;
-          const record = payload.new || payload.old as ContentRecord;
+          const record = (payload.new || payload.old) as ContentRecord;
           
-          toast({
-            title: `Content ${changeType}`,
-            description: `${record.title} has been ${changeType === 'INSERT' ? 'created' : changeType === 'UPDATE' ? 'updated' : 'deleted'}`,
-          });
+          if (record?.title) {
+            toast({
+              title: `Content ${changeType}`,
+              description: `${record.title} has been ${changeType === 'INSERT' ? 'created' : changeType === 'UPDATE' ? 'updated' : 'deleted'}`,
+            });
+          }
 
           if (onUpdate) {
             onUpdate();

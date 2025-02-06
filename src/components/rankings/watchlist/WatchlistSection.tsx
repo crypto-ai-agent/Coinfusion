@@ -1,25 +1,16 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { CoinData } from "@/utils/types/crypto";
+import type { Watchlist } from "@/types/watchlist";
 import { WatchlistHeader } from "./WatchlistHeader";
 import { WatchlistControls } from "./WatchlistControls";
 import { WatchlistContent } from "./WatchlistContent";
 
 interface WatchlistSectionProps {
   allTokens: CoinData[];
-}
-
-interface Watchlist {
-  id: string;
-  name: string;
-  description: string | null;
-  list_type: string;
-  default_sort_by: string;
-  default_sort_order: string;
 }
 
 interface WatchlistItem {
@@ -89,8 +80,8 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
       return;
     }
 
-    setWatchlists(data);
-    if (data.length > 0 && !selectedWatchlist) {
+    setWatchlists(data || []);
+    if (data && data.length > 0 && !selectedWatchlist) {
       setSelectedWatchlist(data[0].id);
       setSortBy(data[0].default_sort_by || "market_cap");
       setSortOrder(data[0].default_sort_order as "asc" | "desc" || "desc");
