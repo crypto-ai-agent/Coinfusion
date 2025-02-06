@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 interface ContentFormProps {
   onSubmit: (formData: {
@@ -37,21 +41,75 @@ export const ContentForm = ({
 }: ContentFormProps) => {
   const [published, setPublished] = useState(defaultValues.published || false);
   const [hasQuiz, setHasQuiz] = useState(defaultValues.has_quiz || false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const validateForm = (formData: FormData): boolean => {
+    const newErrors: { [key: string]: string } = {};
+    
+    const title = formData.get('title') as string;
+    const content = formData.get('content') as string;
+    const category = formData.get('category') as string;
+
+    if (!title.trim()) {
+      newErrors.title = "Title is required";
+    } else if (title.length < 3) {
+      newErrors.title = "Title must be at least 3 characters long";
+    }
+
+    if (!content.trim()) {
+      newErrors.content = "Content is required";
+    } else if (content.length < 10) {
+      newErrors.content = "Content must be at least 10 characters long";
+    }
+
+    if (!category) {
+      newErrors.category = "Category is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
     
-    // Create a structured object instead of using FormData directly
-    const contentData = {
-      title: formData.get('title') as string,
-      content: formData.get('content') as string,
-      category: formData.get('category') as string,
-      published: published, // Use the state directly
-      has_quiz: showQuizOption ? hasQuiz : undefined,
-    };
+    if (!validateForm(formData)) {
+      setIsSubmitting(false);
+      toast({
+        title: "Validation Error",
+        description: "Please check the form for errors",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    onSubmit(contentData);
+    try {
+      const contentData = {
+        title: formData.get('title') as string,
+        content: formData.get('content') as string,
+        category: formData.get('category') as string,
+        published,
+        has_quiz: showQuizOption ? hasQuiz : undefined,
+      };
+      
+      await onSubmit(contentData);
+      toast({
+        title: "Success",
+        description: `Content ${isEditing ? 'updated' : 'created'} successfully`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,14 +121,21 @@ export const ContentForm = ({
             id="title"
             name="title"
             defaultValue={defaultValues.title}
+            className={errors.title ? "border-red-500" : ""}
             required
           />
+          {errors.title && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errors.title}</AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <div>
           <Label htmlFor="category">Category</Label>
           <Select name="category" defaultValue={defaultValues.category || "basics"}>
-            <SelectTrigger>
+            <SelectTrigger className={errors.category ? "border-red-500" : ""}>
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -80,6 +145,12 @@ export const ContentForm = ({
               <SelectItem value="investment">Investment</SelectItem>
             </SelectContent>
           </Select>
+          {errors.category && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errors.category}</AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <div>
@@ -88,9 +159,15 @@ export const ContentForm = ({
             id="content"
             name="content"
             defaultValue={defaultValues.content}
+            className={`min-h-[200px] ${errors.content ? "border-red-500" : ""}`}
             required
-            className="min-h-[200px]"
           />
+          {errors.content && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errors.content}</AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <div className="flex items-center space-x-2">
@@ -118,8 +195,8 @@ export const ContentForm = ({
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit">
-          {isEditing ? 'Update' : 'Create'} {type === 'guide' ? 'Guide' : type === 'news' ? 'News Article' : 'Educational Material'}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Saving...' : isEditing ? 'Update' : 'Create'} {type === 'guide' ? 'Guide' : type === 'news' ? 'News Article' : 'Educational Material'}
         </Button>
       </div>
     </form>

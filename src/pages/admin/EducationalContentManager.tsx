@@ -9,6 +9,7 @@ import { Content } from "@/types/content";
 import { ContentHeader } from "@/components/admin/content/ContentHeader";
 import { useContentMutations } from "@/components/admin/content/ContentMutations";
 import { useToast } from "@/hooks/use-toast";
+import { useContentRealtime } from "@/hooks/useContentRealtime";
 
 export const EducationalContentManager = () => {
   const [isAddingContent, setIsAddingContent] = useState(false);
@@ -93,6 +94,10 @@ export const EducationalContentManager = () => {
       });
     }
   };
+
+  useContentRealtime(selectedContentType, () => {
+    queryClient.invalidateQueries({ queryKey: ['educationalContent', selectedContentType] });
+  });
 
   if (isLoading) {
     return <div>Loading...</div>;
