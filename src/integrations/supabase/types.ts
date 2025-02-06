@@ -92,27 +92,36 @@ export type Database = {
       }
       content_categories: {
         Row: {
+          color: string | null
           created_at: string | null
           description: string | null
+          icon: string | null
           id: number
           name: string
           parent_id: number | null
+          parent_path: unknown | null
           updated_at: string | null
         }
         Insert: {
+          color?: string | null
           created_at?: string | null
           description?: string | null
+          icon?: string | null
           id?: number
           name: string
           parent_id?: number | null
+          parent_path?: unknown | null
           updated_at?: string | null
         }
         Update: {
+          color?: string | null
           created_at?: string | null
           description?: string | null
+          icon?: string | null
           id?: number
           name?: string
           parent_id?: number | null
+          parent_path?: unknown | null
           updated_at?: string | null
         }
         Relationships: [
@@ -137,14 +146,19 @@ export type Database = {
           last_reviewed_at: string | null
           primary_category: string | null
           published: boolean | null
+          review_feedback: string[] | null
           review_notes: string | null
           reviewed_by: string | null
+          reviewers: string[] | null
+          revision_history: Json[] | null
+          scheduled_publish_at: string | null
           secondary_categories: string[] | null
           slug: string
           status: string | null
           tags: string[] | null
           title: string
           updated_at: string | null
+          workflow_status: string | null
         }
         Insert: {
           author_id: string
@@ -157,14 +171,19 @@ export type Database = {
           last_reviewed_at?: string | null
           primary_category?: string | null
           published?: boolean | null
+          review_feedback?: string[] | null
           review_notes?: string | null
           reviewed_by?: string | null
+          reviewers?: string[] | null
+          revision_history?: Json[] | null
+          scheduled_publish_at?: string | null
           secondary_categories?: string[] | null
           slug: string
           status?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string | null
+          workflow_status?: string | null
         }
         Update: {
           author_id?: string
@@ -177,14 +196,19 @@ export type Database = {
           last_reviewed_at?: string | null
           primary_category?: string | null
           published?: boolean | null
+          review_feedback?: string[] | null
           review_notes?: string | null
           reviewed_by?: string | null
+          reviewers?: string[] | null
+          revision_history?: Json[] | null
+          scheduled_publish_at?: string | null
           secondary_categories?: string[] | null
           slug?: string
           status?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string | null
+          workflow_status?: string | null
         }
         Relationships: []
       }
@@ -866,11 +890,58 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_notifications: {
+        Row: {
+          content_id: string
+          created_at: string | null
+          id: string
+          notification_type: string
+          read: boolean | null
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          created_at?: string | null
+          id?: string
+          notification_type: string
+          read?: boolean | null
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          created_at?: string | null
+          id?: string
+          notification_type?: string
+          read?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_notifications_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "educational_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      _ltree_compress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      _ltree_gist_options: {
+        Args: {
+          "": unknown
+        }
+        Returns: undefined
+      }
       cleanup_old_price_history: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -887,6 +958,132 @@ export type Database = {
         }
         Returns: boolean
       }
+      lca: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: unknown
+      }
+      lquery_in: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      lquery_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      lquery_recv: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      lquery_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      ltree_compress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltree_decompress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltree_gist_in: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltree_gist_options: {
+        Args: {
+          "": unknown
+        }
+        Returns: undefined
+      }
+      ltree_gist_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltree_in: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltree_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltree_recv: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltree_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      ltree2text: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      ltxtq_in: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltxtq_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltxtq_recv: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ltxtq_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      nlevel: {
+        Args: {
+          "": unknown
+        }
+        Returns: number
+      }
+      text2ltree: {
+        Args: {
+          "": string
+        }
+        Returns: unknown
+      }
     }
     Enums: {
       app_role: "admin" | "user"
@@ -897,6 +1094,14 @@ export type Database = {
         | "featured_content"
         | "ai_highlight"
         | "news_collection"
+      workflow_status_enum:
+        | "draft"
+        | "in_review"
+        | "changes_requested"
+        | "approved"
+        | "scheduled"
+        | "published"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
