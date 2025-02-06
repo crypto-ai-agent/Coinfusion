@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +45,9 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
             published: updatedContent.published,
             has_quiz: updatedContent.has_quiz,
             author_id: sessionData.session.user.id,
+            workflow_status: updatedContent.workflow_status,
+            scheduled_publish_at: updatedContent.scheduled_publish_at,
+            reviewers: updatedContent.reviewers,
           })
           .eq('id', updatedContent.id)
           .select();
@@ -107,6 +111,7 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
             has_quiz: newContent.has_quiz,
             content_type: 'educational',
             author_id: session.user.id,
+            workflow_status: 'draft',
             slug: `${newContent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`,
           }])
           .select()
@@ -134,3 +139,4 @@ export const useContentMutations = (contentType: 'guide' | 'educational') => {
 
   return { updateMutation, createMutation };
 };
+

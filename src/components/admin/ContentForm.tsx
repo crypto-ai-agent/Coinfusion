@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { ContentWorkflowManager } from './content/ContentWorkflowManager';
+import { RevisionHistory } from './content/RevisionHistory';
 
 interface ContentFormProps {
   onSubmit: (formData: {
@@ -190,6 +191,26 @@ export const ContentForm = ({
           </div>
         )}
       </div>
+
+      {isEditing && defaultValues.id && (
+        <>
+          <ContentWorkflowManager
+            content={defaultValues as Content}
+            onWorkflowUpdate={(updatedContent) => {
+              // Handle workflow updates
+              toast({
+                title: "Workflow Updated",
+                description: "Content workflow status has been updated.",
+              });
+            }}
+          />
+          
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">Revision History</h3>
+            <RevisionHistory content={defaultValues as Content} />
+          </div>
+        </>
+      )}
 
       <div className="flex justify-end space-x-2">
         <Button type="button" variant="outline" onClick={onClose}>

@@ -1,3 +1,4 @@
+
 export interface Content {
   id: string;
   title: string;
@@ -11,6 +12,11 @@ export interface Content {
   has_quiz?: boolean;
   created_at?: string;
   updated_at?: string;
+  workflow_status?: ContentWorkflow['workflow_status'];
+  scheduled_publish_at?: string;
+  review_feedback?: string[];
+  revision_history?: ContentWorkflow['revision_history'];
+  reviewers?: string[];
 }
 
 export interface Quiz {
@@ -62,23 +68,3 @@ export interface ContentWorkflow {
   reviewers?: string[];
 }
 
-// Update existing Content interface
-export interface Content {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  author_id: string;
-  slug: string;
-  published: boolean;
-  content_type: 'guide' | 'educational';
-  quiz_id?: string | null;
-  has_quiz?: boolean;
-  created_at?: string;
-  updated_at?: string;
-  workflow_status?: ContentWorkflow['workflow_status'];
-  scheduled_publish_at?: string;
-  review_feedback?: string[];
-  revision_history?: ContentWorkflow['revision_history'];
-  reviewers?: string[];
-}
