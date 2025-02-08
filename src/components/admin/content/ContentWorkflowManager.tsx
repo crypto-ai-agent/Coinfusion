@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useState } from 'react';
 import { Content } from '@/types/content';
@@ -54,7 +53,12 @@ export function ContentWorkflowManager({ content, onWorkflowUpdate }: ContentWor
 
       if (error) throw error;
 
-      onWorkflowUpdate(data);
+      const updatedContent: Content = {
+        ...data,
+        content_type: data.content_type as 'guide' | 'educational',
+      };
+
+      onWorkflowUpdate(updatedContent);
       toast({
         title: 'Status Updated',
         description: `Content status changed to ${newStatus}`,
@@ -93,7 +97,12 @@ export function ContentWorkflowManager({ content, onWorkflowUpdate }: ContentWor
 
       if (error) throw error;
 
-      onWorkflowUpdate(data);
+      const updatedContent: Content = {
+        ...data,
+        content_type: data.content_type as 'guide' | 'educational',
+      };
+
+      onWorkflowUpdate(updatedContent);
       toast({
         title: 'Content Scheduled',
         description: `Content will be published on ${format(date, 'PPP')}`,
@@ -208,4 +217,3 @@ export function ContentWorkflowManager({ content, onWorkflowUpdate }: ContentWor
     </div>
   );
 }
-

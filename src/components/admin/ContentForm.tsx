@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { ContentWorkflowManager } from './content/ContentWorkflowManager';
 import { RevisionHistory } from './content/RevisionHistory';
+import { Content } from "@/types/content";
 
 interface ContentFormProps {
   onSubmit: (formData: {
@@ -22,13 +23,7 @@ interface ContentFormProps {
   onClose: () => void;
   type: 'guide' | 'educational' | 'news';
   isEditing?: boolean;
-  defaultValues?: {
-    title?: string;
-    content?: string;
-    category?: string;
-    published?: boolean;
-    has_quiz?: boolean;
-  };
+  defaultValues?: Partial<Content>;
   showQuizOption?: boolean;
 }
 
