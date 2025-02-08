@@ -80,11 +80,15 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
       return;
     }
 
-    setWatchlists(data || []);
+    setWatchlists(data?.map(item => ({
+      ...item,
+      default_sort_order: (item.default_sort_order || 'desc') as 'asc' | 'desc'
+    })) || []);
+
     if (data && data.length > 0 && !selectedWatchlist) {
       setSelectedWatchlist(data[0].id);
       setSortBy(data[0].default_sort_by || "market_cap");
-      setSortOrder(data[0].default_sort_order as "asc" | "desc" || "desc");
+      setSortOrder((data[0].default_sort_order as 'asc' | 'desc') || "desc");
     }
   };
 
@@ -238,3 +242,55 @@ export const WatchlistSection = ({ allTokens }: WatchlistSectionProps) => {
     </div>
   );
 };
+
+const WatchlistControls = React.memo(({ 
+  searchQuery, 
+  onSearchChange, 
+  sortBy, 
+  onSortChange, 
+  sortOrder, 
+  onSortOrderToggle, 
+  onCreateWatchlist 
+}: {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  sortBy: string;
+  onSortChange: (value: string) => void;
+  sortOrder: 'asc' | 'desc';
+  onSortOrderToggle: () => void;
+  onCreateWatchlist: (name: string, type: string, description: string) => Promise<void>;
+}) => {
+  return (
+    <div className="flex items-center gap-4">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={e => onSearchChange(e.target.value)}
+        placeholder="Search..."
+        className="w-full p-2 border border-gray-300 rounded-md"
+      />
+      <select
+        value={sortBy}
+        onChange={e => onSortChange(e.target.value)}
+        className="p-2 border border-gray-300 rounded-md"
+      >
+        <option value="market_cap">Market Cap</option>
+        <option value="price">Price</option>
+        <option value="volume">Volume</option>
+        <option value="change">Change</option>
+      </select>
+      <button
+        onClick={onSortOrderToggle}
+        className="p-2 border border-gray-300 rounded-md"
+      >
+        {sortOrder === "asc" ? "Descending" : "Ascending"}
+      </button>
+      <button
+        onClick={() => onCreateWatchlist("New Watchlist", "custom", "A new watchlist")}
+        className="p-2 border border-gray-300 rounded-md"
+      >
+        <Plus />
+      </button>
+    </div>
+  );
+});

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useState } from 'react';
 import { Content } from '@/types/content';
@@ -56,6 +57,7 @@ export function ContentWorkflowManager({ content, onWorkflowUpdate }: ContentWor
       const updatedContent: Content = {
         ...data,
         content_type: data.content_type as 'guide' | 'educational',
+        workflow_status: data.workflow_status as Content['workflow_status']
       };
 
       onWorkflowUpdate(updatedContent);
@@ -100,6 +102,7 @@ export function ContentWorkflowManager({ content, onWorkflowUpdate }: ContentWor
       const updatedContent: Content = {
         ...data,
         content_type: data.content_type as 'guide' | 'educational',
+        workflow_status: data.workflow_status as Content['workflow_status']
       };
 
       onWorkflowUpdate(updatedContent);

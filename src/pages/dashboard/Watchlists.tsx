@@ -51,7 +51,8 @@ const WatchlistsPage = () => {
 
       const watchlistsWithCount = watchlistsData.map(watchlist => ({
         ...watchlist,
-        coin_count: watchlist.watchlist_items?.[0]?.count || 0
+        coin_count: watchlist.watchlist_items?.[0]?.count || 0,
+        default_sort_order: (watchlist.default_sort_order || 'desc') as 'asc' | 'desc'
       }));
 
       setWatchlists(watchlistsWithCount);
