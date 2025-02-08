@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Category } from "@/types/content";
-import { Tree, FolderPlus, Pencil, Trash2 } from "lucide-react";
+import { Trees, FolderPlus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -235,7 +235,7 @@ export const CategoryManager = () => {
             className="flex items-center justify-between p-4 border rounded-lg"
           >
             <div className="flex items-center space-x-4">
-              <Tree className="h-5 w-5" style={{ color: category.color }} />
+              <Trees className="h-5 w-5" style={{ color: category.color }} />
               <div>
                 <h3 className="font-medium">{category.name}</h3>
                 <p className="text-sm text-muted-foreground">{category.description}</p>
